@@ -232,9 +232,12 @@ if (isset($_POST['submit_step1'])) {
 }
 
 // --- Prepare Template Variables ---
+// Default page_title, will be overridden based on step
+$page_title_for_template = $lang['install_title'];
+
 $template_vars = [
     'lang' => $lang,
-    'page_title' => ($current_step == 3) ? $lang['success_title'] : $lang['install_title'],
+    // page_title will be set specifically per step
     'errors' => $form_errors,
     'db_connection_error_details' => $db_connection_error_details,
     'current_step' => $current_step,
@@ -258,31 +261,40 @@ $template_vars = [
     'admin_panel_url' => 'index.php', // Default to root, assuming /admin will be routed by main app
 ];
 
-// --- Determine Main Content Template ---
-$main_content_template = 'step1_db_form.twig';
+// --- Determine Main Content Template & Specific Page Title ---
 if ($current_step === 1) {
-    // Default, already set
+    $main_content_template = 'step1_db_form.twig';
+    $page_title_for_template = $lang['db_setup_title'];
 } elseif ($current_step === 2) {
-    $template_vars['page_title'] = $lang['site_admin_setup_title'];
-    // If we are supposed to be on step 2, but lost DB session or form had errors for step 2.
-    if (isset($form_errors['general']) && $form_errors['general'] == $lang['db_details_lost_error']) {
-        // This error means we can't proceed to step 2, so show step 1 again.
-    } elseif (!empty($form_errors)) { // Any other errors on step 2 (validation, db_step2, sql_install)
+    // Check if we should even be on step 2 (i.e., DB details are in session)
+    if (!isset($_SESSION['install_db_details']) && !isset($_POST['submit_step1'])) { // Added !isset($_POST['submit_step1']) to allow step1 processing to set step=2
+        $form_errors['general'] = $lang['db_details_lost_error'];
+        $current_step = 1; // Force back to step 1
+        $main_content_template = 'step1_db_form.twig';
+        $page_title_for_template = $lang['db_setup_title'];
+    } else {
         $main_content_template = 'step2_site_admin_form.twig';
-    } elseif ($db_connected || isset($_SESSION['install_db_details'])) { // Successfully connected in step 1 or session exists
-         $main_content_template = 'step2_site_admin_form.twig';
+        $page_title_for_template = $lang['site_admin_setup_title'];
     }
-    // If none of the above, it implies we should be on step 1 (e.g. initial load of step 2 without session)
-
 } elseif ($current_step === 3) {
     $main_content_template = 'success_message.twig';
+    $page_title_for_template = $lang['success_title'];
+} else { // Should not happen, default to step 1
+    $main_content_template = 'step1_db_form.twig';
+    $page_title_for_template = $lang['db_setup_title'];
+    $current_step = 1; // Ensure current_step var is accurate
 }
+
+// Update current_step in template_vars if it was changed by logic above
+$template_vars['current_step'] = $current_step;
+$template_vars['page_title'] = $page_title_for_template;
 
 
 // --- Render ---
 try {
     if ($twig !== null) { // Ensure twig was initialized
-        echo $twig->render('layout.twig', array_merge($template_vars, ['main_content_template' => $main_content_template]));
+        // Render the specific step template, which extends layout.twig
+        echo $twig->render($main_content_template, $template_vars);
     } else {
         die("Twig environment not available. Installation cannot proceed.");
     }
