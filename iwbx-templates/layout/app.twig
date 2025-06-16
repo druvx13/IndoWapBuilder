@@ -75,30 +75,38 @@
                     {% endif %}
                     <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert"> {# Added fade show for BS5 #}
                         {{ session_notice.message|raw }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> {# BS5 close button #}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ lang.alert_close_label|default('Close') }}"></button>
                     </div>
                 {% endif %}
-                {% if form_errors and form_errors is iterable %}
-                    {% for category, messages in form_errors %}
-                        {% if messages is iterable %}
-                            {% for message in messages %}
+
+                {# Revised form_errors handling #}
+                {% if form_errors is defined and form_errors %}
+                    {% if form_errors is iterable %}
+                        {# Handles form_errors being an array of categories (e.g., field names),
+                           where each category might have multiple messages or a single message string.
+                           Also handles form_errors being a simple list of error strings. #}
+                        {% for key, value_or_messages in form_errors %}
+                            {% if value_or_messages is iterable %} {# E.g. errors = {'field1': ['errA', 'errB']} #}
+                                {% for single_message in value_or_messages %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        {{ single_message|e('html') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ lang.alert_close_label|default('Close') }}"></button>
+                                    </div>
+                                {% endfor %}
+                            {% else %} {# E.g. errors = {'field1': 'Error for field1', 'general': 'General error'} or errors = ['General error 1', 'General error 2'] #}
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    {{ message|e }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    {{ value_or_messages|e('html') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ lang.alert_close_label|default('Close') }}"></button>
                                 </div>
-                            {% endfor %}
-                        {% else %}
-                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                {{ messages|e }} {# If not iterable, assume it's a single message string #}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                {% elseif form_errors and form_errors is string %}
-                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ form_errors|e }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {# This handles the case where form_errors is just a single string message #}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form_errors|e('html') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ lang.alert_close_label|default('Close') }}"></button>
+                        </div>
+                    {% endif %}
                 {% endif %}
 
             {% endblock messages %}

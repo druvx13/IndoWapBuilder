@@ -312,5 +312,8 @@ return [
     'error_page_default_message' => 'The page you are looking for cannot be found or an internal error occurred.',
     'error_page_go_to_homepage' => 'Back to Homepage',
 
+    // General UI elements
+    'alert_close_label' => 'Close',
+
 ];
 ?>
