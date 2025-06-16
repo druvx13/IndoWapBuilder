@@ -26,13 +26,19 @@ class module_test extends Module
     {
         global $user; // $user should be available from the controller scope
 
-        $module_title = 'Panel Modul: ' . self::getName(); // Use static method for name
-        $content_html = '<div class="alert alert-warning">Ini adalah modul demo';
+        // Use lang strings from Base::$lang_strings (globally available in Twig, but access here if needed)
+        $lang = Base::$lang_strings;
+
+        $module_title = $lang['module_test_panel_title'] ?? 'Test Module Panel';
+
+        $content_html = '<div class="alert alert-warning">' . ($lang['module_test_panel_content_demo'] ?? 'This is a demo module panel.');
 
         $can_delete_info_path = null;
         if (isset($user) && $user->data['rights'] == 10) { // Check if $user is set
-            $content_html .= ', untuk menghapus modul ini silakan hapus file <strong>iwbx-includes/modules/' . __CLASS__ . '.php</strong>';
-            $can_delete_info_path = 'iwbx-includes/modules/' . __CLASS__ . '.php';
+            $filepath_to_delete = 'iwbx-includes/modules/' . __CLASS__ . '.php';
+            $delete_info_str = $lang['module_test_panel_delete_info'] ?? 'To remove this module, please delete the file: <strong>%filepath%</strong>';
+            $content_html .= ' ' . str_replace('%filepath%', $filepath_to_delete, $delete_info_str);
+            $can_delete_info_path = $filepath_to_delete;
         } else {
             $content_html .= '.';
         }
@@ -41,11 +47,10 @@ class module_test extends Module
         // Return data for Twig template
         return [
             'title' => $module_title,
-            'raw_html' => $content_html, // For direct HTML rendering in module_panel_default.twig
-            // Example of more structured data for future:
-            // 'message' => 'Ini adalah modul demo.',
+            'raw_html' => $content_html,
+            // For more structured data (if module_panel_default.twig is adapted):
+            // 'message' => $lang['module_test_panel_content_demo'] ?? 'This is a demo module panel.',
             // 'can_delete_info_path' => $can_delete_info_path,
-            // 'additional_data' => ['key' => 'value']
         ];
     }
 }

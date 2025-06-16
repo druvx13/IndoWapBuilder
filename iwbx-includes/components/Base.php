@@ -14,21 +14,32 @@ class Base
     public static $pdo;
     public static $set;
     public static $twig; // Twig environment instance
+    public static $lang_strings = []; // Language strings
     public static $controller = 'site';
     public static $action = 'index';
 
     public function __construct()
     {
         $this->getRoutes();
-        // dbConnect must come before settings if settings are loaded from DB
         $this->dbConnect();
-        // settings must come before initTwig if Twig needs access to settings
         $this->settings();
-        // session_start before any potential output or Twig rendering
-        if (session_status() == PHP_SESSION_NONE) { // Check if session already started
+        if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        $this->initTwig();  // Initialize Twig
+        self::loadLanguage(); // Load default language (en)
+        $this->initTwig();  // Initialize Twig, can now use lang strings if needed for globals
+    }
+
+    public static function loadLanguage(string $locale = 'en')
+    {
+        $lang_file = ROOTPATH . 'iwbx-includes/languages/' . $locale . '.php';
+        if (file_exists($lang_file)) {
+            self::$lang_strings = include $lang_file;
+        } else {
+            // Fallback or default if language file not found
+            self::$lang_strings = ['error_language_file_not_found' => "Language file not found: {$locale}.php"];
+            error_log("Language file not found: " . $lang_file);
+        }
     }
 
     protected function initTwig()
@@ -81,8 +92,10 @@ class Base
             if (self::$set && is_array(self::$set)) {
                  self::$twig->addGlobal('set', self::$set);
             }
-            // self::$twig->addGlobal('baseurl', self::$set['baseurl'] ?? ''); // Redundant if 'set' is global
-            // User object will be added later if needed, as it's instantiated after Base in index.php
+            if (!empty(self::$lang_strings)) {
+                self::$twig->addGlobal('lang', self::$lang_strings); // Make all lang strings available globally to Twig
+            }
+            // User object will be added later if needed / per-template basis
 
         } catch (\Throwable $e) {
             error_log("Error initializing Twig: " . $e->getMessage() . "\n" . $e->getTraceAsString());

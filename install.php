@@ -105,42 +105,47 @@ function install_indowapbuilder($pdo, $sql_filename = 'indowapbuilder.sql')
 }
 
 
-// --- Language Strings ---
+// --- Language Strings (English) ---
 $lang = [
-    'install_title' => 'Instalasi IndoWapBuilder',
-    'db_setup_title' => 'Pengaturan Database',
-    'site_admin_setup_title' => 'Pengaturan Situs & Admin',
-    'success_title' => 'Instalasi Berhasil',
+    'install_title' => 'IndoWapBuilder Installation',
+    'db_setup_title' => 'Database Setup',
+    'site_admin_setup_title' => 'Site & Admin Setup',
+    'success_title' => 'Installation Successful',
+    'installation_successful_heading' => 'Installation Successful!', // For success template
+    'proceed_to_admin_panel_html' => 'Please <a href="%admin_url%" class="alert-link">click here</a> to go to the Admin Panel.', // For success template
     'mysql_host_label' => 'MySQL Host',
     'mysql_user_label' => 'MySQL User',
     'mysql_password_label' => 'MySQL Password',
     'mysql_database_label' => 'MySQL Database',
-    'continue_button' => 'Lanjutkan',
-    'install_button' => 'Install',
-    'site_url_label' => 'URL Situs',
-    'site_url_help' => 'URL Situs tanpa diakhiri garis miring',
-    'admin_name_label' => 'Nama Admin',
-    'admin_name_help' => 'Jika lebih dari satu pisahkan dengan tanda , (koma)',
-    'admin_email_label' => 'Email Admin',
-    'admin_password_label' => 'Kata sandi Admin',
-    'error_db_connect' => 'Tidak dapat terhubung ke database.',
-    'error_db_connect_details' => 'Detail:',
-    'back_button' => 'Kembali',
-    'installation_successful' => 'Instalasi berhasil diselesaikan.',
+    'continue_button' => 'Continue',
+    'install_button' => 'Install Now',
+    'site_url_label' => 'Site URL',
+    'site_url_help' => 'Your site\'s main URL, without a trailing slash.',
+    'admin_name_label' => 'Admin Name',
+    'admin_name_help' => 'If more than one, separate with a comma.',
+    'admin_email_label' => 'Admin Email',
+    'admin_password_label' => 'Admin Password',
+    'error_db_connect' => 'Could not connect to the database.',
+    'error_db_connect_details' => 'Details:',
+    'back_button' => 'Back', // For step2_site_admin_form.twig to go back to DB setup
+    'installation_successful' => 'Installation completed successfully.',
     'admin_panel_link_text' => 'Admin Panel',
-    'delete_install_warning' => 'Demi keamanan harap hapus file <strong>install.php</strong>',
-    'form_action_url' => 'install.php',
-    'db_details_lost_error' => 'Detail database tidak ditemukan atau sesi berakhir. Harap mulai dari awal.',
-    'db_reconnect_error' => 'Gagal menyambung kembali ke database dengan detail yang disimpan. Periksa kembali detail database.',
-    'site_url_error' => 'URL Situs wajib diisi dan valid.',
-    'admin_name_error' => 'Nama Admin wajib diisi.',
-    'admin_email_error' => 'Email Admin tidak valid.',
-    'admin_password_error' => 'Kata sandi Admin wajib diisi (minimal 4 karakter).',
-    'db_config_write_error' => 'Gagal menulis file konfigurasi db.ini.',
-    'sql_install_error' => 'Gagal menjalankan file SQL instalasi: ',
-    'db_host_required' => 'Host MySQL wajib diisi.',
-    'db_user_required' => 'User MySQL wajib diisi.',
-    'db_database_required' => 'Nama Database wajib diisi.',
+    'delete_install_warning' => 'For security reasons, please delete the <strong>install.php</strong> file now.',
+    'form_action_url' => 'install.php', // Self-posting form
+    'db_details_lost_error' => 'Database details not found or session expired. Please start over.',
+    'db_reconnect_error' => 'Failed to reconnect to the database with the saved details. Please check the database details again.',
+    'site_url_error' => 'Site URL is required and must be a valid URL.',
+    'admin_name_error' => 'Admin Name is required.',
+    'admin_email_error' => 'Admin Email is not valid.',
+    'admin_password_error' => 'Admin Password is required (minimum 4 characters).',
+    'db_config_write_error' => 'Failed to write db.ini configuration file. Check file permissions.',
+    'sql_install_error' => 'Failed to execute installation SQL: ',
+    'db_host_required' => 'MySQL Host is required.',
+    'db_user_required' => 'MySQL User is required.',
+    'db_database_required' => 'MySQL Database name is required.',
+    'fill_all_required_fields' => 'Please fill in all required fields.',
+    'site_details_legend' => 'Site Details', // For step2_site_admin_form.twig
+    'admin_details_legend' => 'Admin Account Details', // For step2_site_admin_form.twig
 ];
 
 // --- Application Logic ---

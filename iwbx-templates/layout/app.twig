@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang_code|default('id') }}"> {# Assuming lang_code might be passed, default to 'id' #}
+<html lang="{{ lang_code|default('en') }}"> {# Default to English #}
 <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -41,18 +41,18 @@
                                 <strong><i class="fa fa-user"></i> {{ user.getName()|e }}</strong>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown"> {# dropdown-menu-end for BS5 right alignment #}
-                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/account"><i class="fa fa-user"></i> {{ lang.menu_account|default('Akun') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/account"><i class="fa fa-user"></i> {{ lang.menu_account|default('Account') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/panel"><i class="fa fa-dashboard"></i> {{ lang.menu_panel|default('Panel') }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.menu_logout|default('Keluar') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.menu_logout|default('Logout') }}</a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item {% if controller == 'site' and action == 'login' %}active{% endif %}">
-                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.menu_login|default('Masuk') }}</a>
+                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.menu_login|default('Login') }}</a>
                         </li>
                         <li class="nav-item {% if controller == 'site' and action == 'register' %}active{% endif %}">
-                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.menu_register|default('Pendaftaran') }}</a>
+                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.menu_register|default('Register') }}</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -82,22 +82,22 @@
                     {% for category, messages in form_errors %}
                         {% if messages is iterable %}
                             {% for message in messages %}
-                                <div class="alert alert-danger alert-dismissible" role="alert">
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                     {{ message|e }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
                             {% endfor %}
                         {% else %}
-                             <div class="alert alert-danger alert-dismissible" role="alert">
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 {{ messages|e }} {# If not iterable, assume it's a single message string #}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         {% endif %}
                     {% endfor %}
                 {% elseif form_errors and form_errors is string %}
-                     <div class="alert alert-danger alert-dismissible" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ form_errors|e }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endif %}
 
@@ -112,10 +112,10 @@
                 {% if user and user.id %}
                     <a href="{{ baseurl_root|default(set.baseurl) }}/account"><i class="fa fa-user"></i> {{ user.getName()|e }}</a>
                     <a href="{{ baseurl_root|default(set.baseurl) }}/panel"><i class="fa fa-dashboard"></i> {{ lang.footer_panel|default('Panel') }}</a>
-                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.footer_logout|default('Keluar') }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.footer_logout|default('Logout') }}</a>
                 {% else %}
-                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.footer_login|default('Masuk') }}</a>
-                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.footer_register|default('Pendaftaran') }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.footer_login|default('Login') }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.footer_register|default('Register') }}</a>
                 {% endif %}
             </div>
             <p>&copy; {{ "now"|date("Y") }} {{ set.sitename|e }}</p> {# Updated year to be dynamic #}

@@ -99,10 +99,14 @@ class Func extends Base
         $shift = (self::$set['timezone']) * 3600;
         if (date('Y', $var) == date('Y', time()))
         {
-            if (date('z', $var + $shift) == date('z', time() + $shift))
-                return 'Hari ini, ' . date("H:i", $var + $shift);
-            if (date('z', $var + $shift) == date('z', time() + $shift) - 1)
-                return 'Kemarin, ' . date("H:i", $var + $shift);
+            if (date('z', $var + $shift) == date('z', time() + $shift)) {
+                // Use translated string for "Today"
+                return (Base::$lang_strings['func_date_today'] ?? 'Today') . ', ' . date("H:i", $var + $shift);
+            }
+            if (date('z', $var + $shift) == date('z', time() + $shift) - 1) {
+                // Use translated string for "Yesterday"
+                return (Base::$lang_strings['func_date_yesterday'] ?? 'Yesterday') . ', ' . date("H:i", $var + $shift);
+            }
         }
 
         return date("d/m/Y H:i", $var + $shift);
@@ -235,7 +239,9 @@ class Func extends Base
     {
         if (!empty($error))
         {
-            $out = '<div class="alert alert-danger"><strong>Kesalahan!</strong>:';
+            // Use translated string for "Error!" title
+            $error_title = Base::$lang_strings['func_error_generic_title'] ?? 'Error!';
+            $out = '<div class="alert alert-danger"><strong>' . htmlspecialchars($error_title) . '</strong>:';
             if (is_array($error))
             {
                 $out .= '<ol>';

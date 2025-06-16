@@ -41,20 +41,12 @@ switch ($action)
             }
         }
 
-        $lang_vars = [
-            'whois_title' => 'WHOIS Lookup',
-            'whois_heading' => 'WHOIS Lookup',
-            'domain_placeholder' => 'Contoh: site.' . ($_SERVER['SERVER_NAME'] ?? 'example.com'),
-            'whois_button' => 'WHOIS',
-            'site_url_label' => 'URL Situs',
-            'owner_label' => 'Pemilik',
-            'registered_on_label' => 'Mendaftar',
-            'data_not_found' => 'Data tidak ditemukan.',
-        ];
+        // Local $lang_vars removed, relying on global 'lang' in Twig from Base::$lang_strings
+        // Ensure all keys used in 'site/whois_results.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
             'page_title' => $page_title,
-            'lang' => $lang_vars,
+            // 'lang' key removed
             'user' => $user,
             'set' => $set,
             'form_action_url' => $baseurl . '/site/whois',
@@ -105,24 +97,12 @@ switch ($action)
             }
         }
 
-        $lang_vars = [
-            'domain_check_title' => 'Domain Checker',
-            'domain_check_results_heading' => 'Hasil Pengecekan Domain',
-            'perform_another_check' => 'Periksa ketersediaan subdomain lainnya',
-            'subdomain_placeholder' => 'Masukan subdomain',
-            'check_button' => 'Check',
-            'no_domains_configured' => 'Tidak ada domain yang dikonfigurasi untuk pengecekan.',
-            'results_for_subdomain' => 'Hasil untuk subdomain',
-            'domain_available' => 'Domain masih tersedia!',
-            'register_domain_button' => 'Pendaftaran',
-            'domain_unavailable' => 'Domain tidak tersedia!',
-            'whois_button' => 'WHOIS',
-            'no_domains_selected_for_check' => 'Tidak ada domain yang dipilih untuk dicek, atau subdomain tidak valid.',
-        ];
+        // Local $lang_vars removed
+        // Ensure all keys used in 'site/domain_check_results.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
             'page_title' => $page_title,
-            'lang' => $lang_vars,
+            // 'lang' key removed
             'user' => $user,
             'set' => $set,
             'form_action_url' => $baseurl . '/site/domain_check',
@@ -201,17 +181,13 @@ switch ($action)
         // $errors array is used here, not single $error string for form field errors
         // $error_message_top is for errors displayed before the form (code validation)
 
-        $lang_vars = [
-            'reset_password_title' => 'Setel ulang kata sandi',
-            'reset_password_heading' => 'Setel ulang kata sandi',
-            'new_password_label' => 'Kata sandi baru',
-            'repeat_new_password_label' => 'Ulangi Kata sandi baru',
-            'save_button' => 'Simpan',
-        ];
+        // Local $lang_vars removed
+        // page_title was 'Setel ulang kata sandi', now will come from lang.reset_password_page_title via Twig global
+        // Ensure all keys used in 'auth/reset_password.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
-            'page_title' => $pageTitle, // Already set
-            'lang' => $lang_vars,
+            'page_title' => Base::$lang_strings['reset_password_page_title'] ?? 'Reset Password', // Set page_title from global lang
+            // 'lang' key removed
             'user' => $user, // For layout
             'form_action_url' => $baseurl . '/site/reset_password/code/' . $code,
             'errors' => $errors ?? [], // Pass form field errors
@@ -279,19 +255,15 @@ switch ($action)
         }
 
         $pageTitle = 'Lupa Kata sandi';
-        // $error variable holds a single error string or false.
+        // $error_message_top (formerly $error) variable holds a single error string or false.
 
-        // Prepare lang strings for Twig
-        $lang_vars = [
-            'forgot_password_title' => 'Lupa Kata sandi',
-            'forgot_password_heading' => 'Lupa Kata sandi',
-            'email_label' => 'Email',
-            'send_button' => 'Kirim',
-        ];
+        // Local $lang_vars removed
+        // pageTitle was 'Lupa Kata sandi', now from lang.forgot_password_page_title
+        // Ensure all keys used in 'auth/forgot_password.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
-            'page_title' => $pageTitle,
-            'lang' => $lang_vars,
+            'page_title' => Base::$lang_strings['forgot_password_page_title'] ?? 'Forgot Password',
+            // 'lang' key removed
             'user' => $user,
             'form_action_url' => $baseurl . '/site/forgot_password',
             'email_value' => htmlspecialchars($email), // $email is already defined in this case
@@ -377,30 +349,22 @@ switch ($action)
             // }
         }
 
-        // Prepare lang strings for Twig
-        $lang_vars = [
-            'register_title' => 'Pendaftaran',
-            'register_heading' => 'Pendaftaran',
-            'name_label' => 'Nama Anda',
-            'email_label' => 'Email',
-            'password_label' => 'Kata sandi',
-            'repeat_password_label' => 'Ulangi kata sandi',
-            'register_button' => 'Mendaftar',
-        ];
+        // Local $lang_vars removed
+        // pageTitle was 'Pendaftaran', now from lang.register_page_title
+        // Ensure all keys used in 'auth/register.twig' under 'lang.*' are in 'en.php'
 
         // Ensure all potential error keys are passed to Twig, even if empty
         $form_errors_twig = [
             'author' => $errors['author'] ?? null,
             'email' => $errors['email'] ?? null,
             'password' => $errors['password'] ?? null,
-            'repeat_password' => $errors['repeat_password'] ?? null, // Though original code doesn't set this key
-            'general' => $errors['general'] ?? ($errors[0] ?? null) // Handle the generic error added by original code
+            'repeat_password' => $errors['repeat_password'] ?? null,
+            'general' => $errors['general'] ?? ($errors[0] ?? null)
         ];
 
-
         $view_vars = [
-            'page_title' => $page_title, // Already set to 'Pendaftaran'
-            'lang' => $lang_vars,
+            'page_title' => Base::$lang_strings['register_page_title'] ?? 'Register',
+            // 'lang' key removed
             'user' => $user,
             'form_action_url' => $baseurl . '/site/register',
             'author_value' => htmlspecialchars($author),
@@ -488,20 +452,13 @@ switch ($action)
             }
         }
 
-        // Prepare lang strings for Twig
-        $lang_vars = [
-            'login_title' => 'Login',
-            'login_heading' => 'Masuk',
-            'email_label' => 'Email',
-            'password_label' => 'Kata sandi',
-            'login_button' => 'Masuk',
-            'forgot_password_link' => 'Lupa kata sandi?',
-            'register_link' => 'Pendaftaran',
-        ];
+        // Local $lang_vars removed
+        // page_title was 'Masuk', now from lang.login_page_title
+        // Ensure all keys used in 'auth/login.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
-            'page_title' => $page_title,
-            'lang' => $lang_vars,
+            'page_title' => Base::$lang_strings['login_page_title'] ?? 'Login',
+            // 'lang' key removed
             'user' => $user, // Pass the $user object for layout/app.twig
             'form_action_url' => $form_action_url,
             'email_value' => htmlspecialchars($email_value),
@@ -526,25 +483,15 @@ switch ($action)
             }
         }
 
-        $lang_vars = [
-            'tagline' => 'Free Wap Site Builder',
-            'main_heading' => 'Buat wap site gratis',
-            'main_tagline' => 'adalah tempat terbaik untuk situs pribadi ataupun situs usaha.',
-            'domain_check_heading' => 'Periksa ketersediaan subdomain',
-            'subdomain_placeholder' => 'Masukan subdomain',
-            'check_button' => 'Check',
-            'no_domains_configured' => 'Tidak ada domain yang dikonfigurasi untuk pengecekan.',
-            'feature_multisite_title' => 'Multi Site',
-            'feature_multisite_desc' => 'Gak perlu bikin banyak akun kalo cuma mau bikin beberapa situs, karena dalam satu akun Kamu bisa bikin lebih dari satu situs.',
-            'feature_template_title' => 'Template Sistem',
-            'feature_template_desc' => 'Sistem template yang memiliki banyak fungsi dan modul-modul canggih seperti: Blog, Chat, dll.',
-        ];
+        // Local $lang_vars removed
+        // page_title was $set['sitename'], now from lang.site_index_page_title (or fallback to $set['sitename'])
+        // Ensure all keys used in 'site/index.twig' under 'lang.*' are in 'en.php'
 
         $view_vars = [
-            'page_title' => $page_title,
-            'lang' => $lang_vars,
+            'page_title' => Base::$lang_strings['site_index_page_title'] ?? $set['sitename'] ?? 'Welcome',
+            // 'lang' key removed
             'user' => $user, // Pass $user for layout
-            'set' => $set,   // Pass $set for things like sitename, and for layout
+            'set' => $set,   // Pass $set for things like sitename (used as fallback for title), and for layout
             'domain_check_url' => $baseurl . '/site/domain_check',
             'available_domains' => $available_domains,
             'session_notice' => Func::getNotice(),

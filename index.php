@@ -66,26 +66,62 @@ if (is_dir(ROOTPATH . 'iwbx-sites/' . $site_domain))
     }
     if (!file_exists(ROOTPATH . 'iwbx-sites/' . $site_domain . '/' . $index))
     {
-        $path = ROOTPATH . 'iwbx-includes';
-        $index = '404.html';
+        $path = ROOTPATH . 'iwbx-includes'; // Fallback path for 404.html
+        $index = '404.html'; // Fallback template
     }
-    require_once ROOTPATH . 'iwbx-includes/lib/Template/Autoloader.php';
-    Template_Autoloader::register();
-    $loader = new Template_Loader_Filesystem($path);
-    $tpl = new Template_Environment($loader, array(
-        'cache' => false,
-        'debug' => true,
-        'autoescape' => false,
-        ));
-    $tpl->addExtension(new Template_Extension_Debug());
-    $module = new Module();
-    $moduler = new Template_SimpleFunction("module", function ($name, $options = null)
-        use ($module)
-    {
-        return $module->getModule($name, $options); }
-    );
-    $tpl->addFunction($moduler);
-    echo $tpl->render($index);
+
+    // Ensure Twig classes are available (assuming vendor/autoload.php was included in base.php or similar)
+    // No need for Template_Autoloader::register();
+
+    try {
+        $site_template_loader = new \Twig\Loader\FilesystemLoader($path);
+        $site_twig = new \Twig\Environment($site_template_loader, [
+            'cache' => false, // Or ROOTPATH . 'iwbx-cache/twig_sites/' (ensure writable)
+            'debug' => true,  // Should be configurable for production
+            'autoescape' => 'html', // Enable autoescaping for security
+        ]);
+
+        if (true) { // Assuming debug is enabled, can be tied to a global $set['debug_mode'] or similar
+            $site_twig->addExtension(new \Twig\Extension\DebugExtension());
+        }
+
+        // Make $set (global settings) available in site templates
+        $site_twig->addGlobal('set', $set);
+        // Potentially add other globals like a simplified 'user' object if relevant for sites,
+        // or specific site data. For now, only 'set'.
+
+        // Module function for site templates
+        $module_instance_for_site = new Module(); // Create a new instance or use a global one if appropriate
+        $site_twig->addFunction(new \Twig\TwigFunction('module', function ($name, $options = null) use ($module_instance_for_site) {
+            // Consider how module output (which might be HTML) interacts with autoescaping.
+            // If getModule returns pre-rendered HTML that should not be escaped,
+            // the template using it would need `|raw`.
+            return $module_instance_for_site->getModule($name, $options);
+        }));
+
+        // Prepare variables for the site's main template
+        $template_vars_for_site = [
+            // Add any other specific variables needed by all site templates here
+            // For example, 'current_route' => $route,
+        ];
+
+        echo $site_twig->render($index, $template_vars_for_site);
+
+    } catch (\Twig\Error\LoaderError $e) {
+        error_log("Twig LoaderError for site $site_domain: " . $e->getMessage());
+        // Display a user-friendly error page for site rendering issues
+        // This could be a simple HTML page or use the main app's error controller if accessible
+        die("Error rendering site template (LoaderError). Please check site template files. Details: " . htmlspecialchars($e->getMessage()));
+    } catch (\Twig\Error\RuntimeError $e) {
+        error_log("Twig RuntimeError for site $site_domain: " . $e->getMessage());
+        die("Error rendering site template (RuntimeError). Please check site template logic. Details: " . htmlspecialchars($e->getMessage()));
+    } catch (\Twig\Error\SyntaxError $e) {
+        error_log("Twig SyntaxError for site $site_domain: " . $e->getMessage());
+        die("Error rendering site template (SyntaxError). Please check site template syntax. Details: " . htmlspecialchars($e->getMessage()));
+    } catch (\Exception $e) {
+        error_log("General error rendering site $site_domain: " . $e->getMessage());
+        die("An unexpected error occurred while rendering the site.");
+    }
 }
 else
 {
