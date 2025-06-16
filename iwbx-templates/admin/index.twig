@@ -1,0 +1,35 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.admin_panel_title|default('Admin Panel')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.admin_panel_heading|default('Admin Panel')) }}</h3>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_admin|default('Admin Panel') }}</li>
+        </ol>
+    </nav>
+
+    <div class="alert alert-info mt-3" role="alert">
+        {{ lang.version_info|default('<strong>IndoWapBuilder v.%version%</strong>, <a class="alert-link" href="%check_update_url%">Periksa pembaruan &raquo;</a>')
+            |replace({'%version%': app_version, '%check_update_url%': check_update_url|e('html_attr')})
+            |raw
+        }}
+    </div>
+
+    {# Session notice is handled by layout/app.twig #}
+
+    <div class="list-group mt-3">
+        <a class="list-group-item list-group-item-action" href="{{ settings_url|e('html_attr') }}">
+            <i class="fa fa-cog fa-fw me-2"></i>{{ lang.settings_link|default('Pengaturan') }}
+        </a>
+        {# Add other admin links here, e.g., User Management, Site Management etc. #}
+        {# Example:
+        <a class="list-group-item list-group-item-action" href="{{ users_list_url|e('html_attr') }}">
+            <i class="fa fa-users fa-fw me-2"></i>{{ lang.users_link|default('Manajemen Pengguna') }}
+        </a>
+        #}
+    </div>
+{% endblock %}

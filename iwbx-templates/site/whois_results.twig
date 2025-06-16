@@ -1,0 +1,37 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.whois_title|default('WHOIS Lookup')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.whois_heading|default('WHOIS Lookup')) }}</h3>
+
+    <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6"> {# Centering the form a bit #}
+        <form method="get" action="{{ form_action_url|e('html_attr') }}">
+            <div class="input-group">
+                <input class="form-control input-sm" type="text" name="domain" value="{{ domain_value|e('html_attr') }}" placeholder="{{ lang.domain_placeholder|default('Example: site.domain.com') }}"/>
+                <span class="input-group-btn">
+                    <button class="btn btn-primary btn-sm" type="submit">{{ lang.whois_button|default('WHOIS') }}</button>
+                </span>
+            </div>
+        </form>
+    </div>
+    <div class="clearfix"></div>
+    <hr/>
+
+    {% if site_info %}
+        <div class="well well-sm">
+            <dl class="dl-horizontal">
+                <dt>{{ lang.site_url_label|default('URL Situs') }}</dt>
+                <dd><a href="http://{{ site_info.url|e }}" target="_blank">http://{{ site_info.url|e }}</a></dd>
+
+                <dt>{{ lang.owner_label|default('Pemilik') }}</dt>
+                <dd>{{ site_info.owner_name|e }}</dd>
+
+                <dt>{{ lang.registered_on_label|default('Mendaftar') }}</dt>
+                <dd>{{ site_info.registered_date }}</dd> {# Assuming already formatted date #}
+            </dl>
+        </div>
+    {% elseif domain_value %} {# Only show 'not found' if a domain was actually searched #}
+        <div class="alert alert-danger">{{ lang.data_not_found|default('Data tidak ditemukan.') }}</div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.module_panel_title|default('Module Panel')) }} {% if module_output.title %}- {{ module_output.title|e }}{% endif %} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ module_output.title|e|default(lang.module_panel_default_heading|default('Module Panel')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel">{{ lang.breadcrumb_panel|default('Panel') }}</a></li>
+        {% if current_site_url %}
+             <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel/dashboard">{{ current_site_url|e }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel/modules">{{ lang.breadcrumb_modules|default('Modul') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ module_output.title|e|default(module_id|e) }}</li>
+    </ol>
+
+    <div class="mt-3"> {# Added margin top for spacing after breadcrumbs #}
+        {# Display content from the module #}
+        {% if module_output.raw_html %}
+            {# For modules returning raw HTML during transition #}
+            {{ module_output.raw_html|raw }}
+        {% elseif module_output.message %}
+            {# Example for modules returning structured data #}
+            <div class="alert alert-info" role="alert">{{ module_output.message|e }}</div>
+            {% if module_output.can_delete_info %}
+                <p class="mt-2">{{ lang.module_delete_info_text|default('To remove this module, please delete the file: ') }}<strong>{{ module_output.can_delete_info|e }}</strong></p>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-warning" role="alert">{{ lang.module_no_content|default('Modul tidak menyediakan konten untuk ditampilkan.') }}</div>
+        {% endif %}
+    </div>
+
+    {# Add a link to go back to the modules list #}
+    <p class="mt-4">
+        <a href="{{ baseurl_root }}/panel/modules" class="btn btn-secondary btn-sm"> {# Changed btn-default to btn-secondary #}
+            <i class="fa fa-arrow-left me-2"></i>{{ lang.back_to_modules_list|default('Kembali ke Daftar Modul') }}
+        </a>
+    </p>
+{% endblock %}

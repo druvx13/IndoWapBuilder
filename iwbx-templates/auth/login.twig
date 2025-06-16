@@ -1,0 +1,41 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.login_title|default('Login')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.login_heading|default('Masuk')) }}</h3>
+
+    {# General form error display, if any (e.g. "Email atau Kata sandi tidak benar") #}
+    {% if form_error_general %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ form_error_general }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    {# Session notice is handled by layout/app.twig now #}
+
+    <div class="row justify-content-center">
+      <div class="col-md-6"> {# You can adjust column width e.g. col-lg-4, col-md-6 #}
+        <form role="form" action="{{ form_action_url|e('html_attr') }}" method="post" class="mt-4">
+            <div class="mb-3">
+                <label for="email" class="form-label">{{ lang.email_label|default('Email') }}</label>
+                <input class="form-control form-control-sm {% if errors.email %}is-invalid{% endif %}" id="email" type="email" name="email" value="{{ email_value|e('html_attr') }}" required/>
+                {% if errors.email %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">{{ lang.password_label|default('Kata sandi') }}</label>
+                <input class="form-control form-control-sm {% if errors.password %}is-invalid{% endif %}" id="password" type="password" name="password" value="" required/>
+                {% if errors.password %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+            </div>
+            <div class="d-grid gap-2 mb-3"> {# BS5 button full width #}
+                <button class="btn btn-primary btn-sm" type="submit" name="submit">{{ lang.login_button|default('Masuk') }}</button>
+            </div>
+            <div class="text-center form-text">
+                <a href="{{ forgot_password_url|e('html_attr') }}">{{ lang.forgot_password_link|default('Lupa kata sandi?') }}</a><br />
+                <a href="{{ register_url|e('html_attr') }}">{{ lang.register_link|default('Pendaftaran') }}</a>
+            </div>
+        </form>
+      </div>
+    </div>
+{% endblock %}

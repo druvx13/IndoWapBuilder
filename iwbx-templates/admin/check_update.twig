@@ -1,0 +1,43 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.check_update_title|default('Periksa Pembaruan')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.check_update_heading|default('Periksa Pembaruan')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/admin">{{ lang.breadcrumb_admin|default('Admin') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_check_update|default('Periksa Pembaruan') }}</li>
+    </ol>
+
+    <div class="mt-3">
+    {% if update_status == 'error' %}
+        <div class="alert alert-danger" role="alert">
+            {{ lang.error_checking_update|default('Tidak dapat memeriksa pembaruan, ini terjadi ketika memanggil URL %url%.')|replace({'%url%': check_update_url|e})|raw }}
+        </div>
+    {% elseif update_status == 'update_available' %}
+        <div class="alert alert-warning" role="alert">
+            {{ lang.update_available_message|default('Versi baru telah tersedia, yaitu <strong>IndoWapBuilder v%new_version%</strong><p>Untuk info lebih lanjut silakan hubungi <a class="alert-link" href="%author_contact_url%">%author_name%</a></p>')
+                |replace({
+                    '%new_version%': new_version|e,
+                    '%author_contact_url%': author_contact_url|e('html_attr'),
+                    '%author_name%': author_name|e
+                })
+                |raw
+            }}
+        </div>
+    {% elseif update_status == 'up_to_date' %}
+        <div class="alert alert-success" role="alert">
+            {{ lang.up_to_date_message|default('Selamat, Kamu menggunakan IndoWapBuilder v.%current_version%, ini adalah versi terbaru.')
+                |replace({'%current_version%': current_version|e})
+                |raw
+            }}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">{{ lang.unknown_update_status|default('Status pembaruan tidak diketahui.') }}</div>
+    {% endif %}
+    </div>
+
+    <p class="mt-4"><a href="{{ baseurl_root }}/admin" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left me-2"></i>{{ lang.back_to_admin|default('Kembali ke Admin Panel') }}</a></p>
+
+{% endblock %}

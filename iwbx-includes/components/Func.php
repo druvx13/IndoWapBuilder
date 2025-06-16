@@ -11,18 +11,33 @@
 
 class Func extends Base
 {
-    public static function getNotice()
+    public static function getNotice($clear_notice = true)
     {
-        if (isset($_SESSION['notice']))
-        {
-            $notice = '<div class="alert alert-info">' . $_SESSION['notice'] . '</div>';
-            unset($_SESSION['notice']);
+        $notice_data = null;
+        if (isset($_SESSION['notice'])) {
+            $notice_data = [
+                'message' => $_SESSION['notice'],
+                'type' => $_SESSION['notice_type'] ?? 'info', // Default to 'info' if not set
+            ];
+            if ($clear_notice) {
+                unset($_SESSION['notice']);
+                if (isset($_SESSION['notice_type'])) {
+                    unset($_SESSION['notice_type']);
+                }
+            }
         }
-        else
-            $notice = '';
-        return $notice;
+        return $notice_data; // Returns an array ['message' => ..., 'type' => ...] or null
     }
 
+    /**
+     * Generates a password-like string.
+     * !!! WARNING: This function is cryptographically weak and should NOT be used
+     * for generating secure passwords for users or sensitive data.
+     * It uses predictable patterns and a weak random number generator (rand()).
+     * Consider using a library like random_compat or PHP's built-in random_bytes() / random_int()
+     * for secure token/password generation if needed, or preferably rely on user-defined passwords
+     * that are then securely hashed. This function may be removed or replaced in the future.
+     */
     public static function generatePassword($length = 10)
     {
         $vowels = 'aeuy';
@@ -47,8 +62,11 @@ class Func extends Base
 
     public static function validateRoute($route)
     {
-        $route = '/' . substr($route, 0, 1) == '/' ? substr($route, 1) : $route;
-        $route = strtr(trim($route), array('//' => '/', '\\' => '/'));
+        // Normalize route: remove leading slash, replace multiple slashes and backslashes
+        $route = ltrim($route, '/');
+        $route = str_replace(array('//', '\\'), '/', $route); // Also handles backslashes consistently
+
+        // Remove any characters not in the allowed set
         $route = preg_replace_callback('/[^a-zA-Z0-9\_\-\.\/]/', function ($match)
         {
             return ''; }
@@ -64,7 +82,9 @@ class Func extends Base
     }
     public static function deleteSite($site)
     {
-        Base::db()->query("DELETE FROM `site` WHERE `site_id` = {$site['site_id']}");
+        // Use prepared statements to prevent SQL injection
+        $stmt = Base::db()->prepare("DELETE FROM `site` WHERE `site_id` = ?");
+        $stmt->execute([$site['site_id']]);
         self::deleteDir(ROOTPATH . 'iwbx-sites/' . $site['url']);
 
     }
@@ -106,8 +126,12 @@ class Func extends Base
         else
         {
             $directoryHandle = opendir($directory);
+            if (!$directoryHandle) { // Check if opendir failed
+                // Optionally log an error here: error_log("Failed to open directory: $directory");
+                return false;
+            }
 
-            while ($contents = readdir($directoryHandle))
+            while (false !== ($contents = readdir($directoryHandle))) // Explicitly check for false
             {
                 if ($contents != '.' && $contents != '..')
                 {
@@ -140,7 +164,9 @@ class Func extends Base
 
     public static function getExt($file)
     {
-        return strtolower(substr(strrchr($file, "."), 1));
+        // Using pathinfo for a more robust way to get the file extension
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        return strtolower($ext);
     }
 
     public static function displayPagination($url, $start, $total, $kmess, $query_string = false)
@@ -249,9 +275,14 @@ class Func extends Base
     {
         $files = array();
         $folders = array();
-        if (false == ($dh = @opendir($dir)))
+        // Removed error suppression operator @ from opendir
+        $dh = opendir($dir);
+        if (false === $dh) { // Explicitly check if opendir failed
+            // Optionally log an error here: error_log("Failed to open directory: $dir");
             return false;
-        while ($el = readdir($dh))
+        }
+
+        while (false !== ($el = readdir($dh))) // Explicitly check for false
         {
             $path = $dir . '/' . $el;
 
@@ -260,7 +291,13 @@ class Func extends Base
                 $folders[] = $el;
                 if ($recurse)
                 {
-                    self::read_dir($path);
+                    // Corrected recursive call to self::readDir (was self::read_dir)
+                    // Note: The return value of the recursive call is not used here.
+                    // This means $files and $folders will only contain items from the top-level $dir.
+                    // If the intention was to collect all files/folders recursively into the top-level arrays,
+                    // this function's logic needs further adjustment.
+                    // For now, fixing the incorrect method name.
+                    self::readDir($path);
                 }
             }
             elseif (is_file($path))

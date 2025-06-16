@@ -11,323 +11,278 @@
 
 session_start();
 
-function install_indowapbuilder($pdo, $file = false)
+// Define ROOTPATH - assuming install.php is in the project's root directory
+if (!defined('ROOTPATH')) {
+    define('ROOTPATH', __DIR__ . DIRECTORY_SEPARATOR);
+}
+
+// Composer's autoloader - Twig would typically be loaded via Composer
+if (file_exists(ROOTPATH . 'vendor/autoload.php')) {
+    require_once ROOTPATH . 'vendor/autoload.php';
+} else {
+    // This is a placeholder. In a real scenario, if Twig isn't found,
+    // you'd die here or have a manual include for Twig's autoloader.
+    // For the tool environment, we assume Twig classes are available if this script runs.
+    // die("Twig library not found. Please run 'composer install'.");
+}
+
+// Initialize Twig
+$loader = null;
+$twig = null;
+try {
+    // Ensure the template directory exists
+    if (!is_dir(ROOTPATH . 'iwbx-templates/install')) {
+        die("Template directory not found: " . ROOTPATH . 'iwbx-templates/install' . "<br>Please create it.");
+    }
+    $loader = new \Twig\Loader\FilesystemLoader(ROOTPATH . 'iwbx-templates/install');
+    $twig = new \Twig\Environment($loader, [
+        'debug' => true,
+        'cache' => false,
+    ]);
+    // Example: $twig->addExtension(new \Twig\Extension\DebugExtension()); // Uncomment if needed
+} catch (\Throwable $e) {
+    die("Error initializing Twig: " . $e->getMessage() . "<br>Make sure Twig is installed and iwbx-templates/install directory exists.");
+}
+
+
+function install_indowapbuilder($pdo, $sql_filename = 'indowapbuilder.sql')
 {
-    $query = fread(fopen($file, 'r'), filesize($file));
-    $query = trim($query);
-    $query = preg_replace("/\n\#[^\n]*/", '', "\n" . $query);
-    $buffer = array();
-    $ret = array();
-    $in_string = false;
-    for ($i = 0; $i < strlen($query) - 1; $i++)
-    {
-        if ($query[$i] == ";" && !$in_string)
-        {
-            $ret[] = substr($query, 0, $i);
-            $query = substr($query, $i + 1);
-            $i = 0;
-        }
-        if ($in_string && ($query[$i] == $in_string) && $buffer[1] != "\\")
-        {
-            $in_string = false;
-        }
-        elseif (!$in_string && ($query[$i] == '"' || $query[$i] == "'") && (!isset($buffer[0]) ||
-            $buffer[0] != "\\"))
-        {
-            $in_string = $query[$i];
-        }
-        if (isset($buffer[1]))
-        {
-            $buffer[0] = $buffer[1];
-        }
-        $buffer[1] = $query[$i];
+    $sql_file_path = ROOTPATH . $sql_filename;
+    if (!file_exists($sql_file_path) || !is_readable($sql_file_path)) {
+        throw new \Exception("SQL installation file not found or not readable: " . htmlspecialchars($sql_file_path));
     }
-    if (!empty($query))
-    {
-        $ret[] = $query;
+
+    $query_string = file_get_contents($sql_file_path);
+    if ($query_string === false) {
+        throw new \Exception("Could not read SQL installation file: " . htmlspecialchars($sql_file_path));
     }
-    for ($i = 0; $i < count($ret); $i++)
-    {
-        $ret[$i] = trim($ret[$i]);
-        if (!empty($ret[$i]) && $ret[$i] != "#")
-        {
-            $pdo->query($ret[$i]);
+
+    $query_string = trim($query_string);
+    $query_string = preg_replace("/\n\#[^\n]*/", '', "\n" . $query_string); // Remove SQL comments
+
+    $sql_commands = [];
+    $current_command = '';
+    $in_string_char = ''; // Basic way to track if we are inside a string
+
+    // Basic SQL splitter (might not handle all edge cases like escaped quotes within strings perfectly)
+    // Consider a more robust SQL parser if complex SQL files are used.
+    $lines = explode("\n", $query_string);
+    foreach ($lines as $line) {
+        $line_trimmed = trim($line);
+        if (empty($line_trimmed) || strpos($line_trimmed, '--') === 0) { // Skip empty lines and -- comments
+            continue;
+        }
+
+        $current_command .= $line . "\n";
+
+        // Rudimentary string detection (doesn't handle escaped quotes well)
+        // This part needs to be more robust for complex SQL.
+        // For simple SQL structure in indowapbuilder.sql, it might suffice.
+        $single_quotes = substr_count($line, "'");
+        $double_quotes = substr_count($line, '"');
+
+        if ($single_quotes % 2 != 0) {
+            $in_string_char = ($in_string_char === "'" ? "" : "'");
+        }
+        if ($double_quotes % 2 != 0) {
+             $in_string_char = ($in_string_char === '"' ? "" : '"');
+        }
+
+        if (substr($line_trimmed, -1) === ';' && $in_string_char === '') {
+            $sql_commands[] = trim($current_command);
+            $current_command = '';
+        }
+    }
+    if (!empty(trim($current_command))) { // Add any trailing command
+        $sql_commands[] = trim($current_command);
+    }
+
+    foreach ($sql_commands as $command) {
+        if (!empty(trim($command))) {
+            $pdo->exec($command); // Use exec for DDL/DML without results
         }
     }
 }
 
-$db = isset($_POST['db']) ? $_POST['db'] : array();
-$data = isset($_POST['data']) ? $_POST['data'] : array();
-$err_conn = false;
-$conn = false;
 
-if (isset($db['host']) && isset($db['user']) && isset($db['password']) && isset
-    ($db['database']))
-{
-    $dsn = 'mysql:dbname=' . $db['database'] . ';host=' . $db['host'];
-    try
-    {
-        $pdo = new PDO($dsn, $db["user"], $db["password"], array(PDO::
-                MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-        $conn = true;
+// --- Language Strings ---
+$lang = [
+    'install_title' => 'Instalasi IndoWapBuilder',
+    'db_setup_title' => 'Pengaturan Database',
+    'site_admin_setup_title' => 'Pengaturan Situs & Admin',
+    'success_title' => 'Instalasi Berhasil',
+    'mysql_host_label' => 'MySQL Host',
+    'mysql_user_label' => 'MySQL User',
+    'mysql_password_label' => 'MySQL Password',
+    'mysql_database_label' => 'MySQL Database',
+    'continue_button' => 'Lanjutkan',
+    'install_button' => 'Install',
+    'site_url_label' => 'URL Situs',
+    'site_url_help' => 'URL Situs tanpa diakhiri garis miring',
+    'admin_name_label' => 'Nama Admin',
+    'admin_name_help' => 'Jika lebih dari satu pisahkan dengan tanda , (koma)',
+    'admin_email_label' => 'Email Admin',
+    'admin_password_label' => 'Kata sandi Admin',
+    'error_db_connect' => 'Tidak dapat terhubung ke database.',
+    'error_db_connect_details' => 'Detail:',
+    'back_button' => 'Kembali',
+    'installation_successful' => 'Instalasi berhasil diselesaikan.',
+    'admin_panel_link_text' => 'Admin Panel',
+    'delete_install_warning' => 'Demi keamanan harap hapus file <strong>install.php</strong>',
+    'form_action_url' => 'install.php',
+    'db_details_lost_error' => 'Detail database tidak ditemukan atau sesi berakhir. Harap mulai dari awal.',
+    'db_reconnect_error' => 'Gagal menyambung kembali ke database dengan detail yang disimpan. Periksa kembali detail database.',
+    'site_url_error' => 'URL Situs wajib diisi dan valid.',
+    'admin_name_error' => 'Nama Admin wajib diisi.',
+    'admin_email_error' => 'Email Admin tidak valid.',
+    'admin_password_error' => 'Kata sandi Admin wajib diisi (minimal 4 karakter).',
+    'db_config_write_error' => 'Gagal menulis file konfigurasi db.ini.',
+    'sql_install_error' => 'Gagal menjalankan file SQL instalasi: ',
+    'db_host_required' => 'Host MySQL wajib diisi.',
+    'db_user_required' => 'User MySQL wajib diisi.',
+    'db_database_required' => 'Nama Database wajib diisi.',
+];
+
+// --- Application Logic ---
+$db_input = isset($_POST['db']) ? $_POST['db'] : [];
+$data_input = isset($_POST['data']) ? $_POST['data'] : [];
+$form_errors = [];
+$db_connection_error_details = false;
+$db_connected = false; // Is a connection currently active and successful for this request
+$pdo = null;
+$current_step = 1;
+
+if (isset($_POST['submit_step1'])) {
+    if (empty($db_input['host'])) $form_errors['db_host'] = $lang['db_host_required'];
+    if (empty($db_input['user'])) $form_errors['db_user'] = $lang['db_user_required'];
+    if (empty($db_input['database'])) $form_errors['db_database'] = $lang['db_database_required'];
+
+    if (empty($form_errors)) {
+        $dsn = 'mysql:dbname=' . $db_input['database'] . ';host=' . $db_input['host'];
+        try {
+            $pdo = new PDO($dsn, $db_input["user"], $db_input["password"], [
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
+            ]);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            $_SESSION['install_db_details'] = $db_input; // Save for next step
+            $current_step = 2;
+            $db_connected = true; // Used to control template display logic
+        } catch (PDOException $e) {
+            $db_connection_error_details = $e->getMessage();
+            $form_errors['db'] = $lang['error_db_connect'];
+        }
     }
-    catch (PDOException $e)
-    {
-        $err_conn = $e->getMessage();
-        $conn = false;
+} elseif (isset($_POST['submit_step2'])) {
+    $current_step = 2;
+    $db_input_session = isset($_SESSION['install_db_details']) ? $_SESSION['install_db_details'] : null;
+
+    if (!$db_input_session) {
+        $form_errors['general'] = $lang['db_details_lost_error'];
+        // Force back to step 1 by not setting $db_connected and letting $current_step remain 2, which will render step1_db_form via logic below
+    } else {
+        if (empty($data_input['siteurl']) || !filter_var($data_input['siteurl'], FILTER_VALIDATE_URL)) $form_errors['siteurl'] = $lang['site_url_error'];
+        if (empty($data_input['admname'])) $form_errors['admname'] = $lang['admin_name_error'];
+        if (empty($data_input['admemail']) || !filter_var($data_input['admemail'], FILTER_VALIDATE_EMAIL)) $form_errors['admemail'] = $lang['admin_email_error'];
+        if (empty($data_input['admpass']) || strlen($data_input['admpass']) < 4) $form_errors['admpass'] = $lang['admin_password_error'];
+
+        if (empty($form_errors)) {
+            $dsn = 'mysql:dbname=' . $db_input_session['database'] . ';host=' . $db_input_session['host'];
+            try {
+                $pdo = new PDO($dsn, $db_input_session["user"], $db_input_session["password"], [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"]);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
+                install_indowapbuilder($pdo, 'indowapbuilder.sql');
+
+                $q_set = $pdo->prepare("UPDATE `set` SET `val` = ? WHERE `key` = ?");
+                $q_set->execute([rtrim($data_input['siteurl'], '/'), 'siteurl']);
+
+                $password_hash = password_hash($data_input['admpass'], PASSWORD_DEFAULT);
+
+                $user_insert = $pdo->prepare("INSERT INTO `user` SET `name` = ?, `email` = ?, `password` = ?, `rights` = ?, `regtime` = ?");
+                $user_insert->execute([$data_input['admname'], $data_input['admemail'], $password_hash, '10', time()]);
+
+                $_SESSION['uid_installed'] = $pdo->lastInsertId(); // Use a different session var to avoid conflict with main app
+                $_SESSION['upw_installed'] = $data_input['admpass'];
+
+                $dbconfig_content = "host = \"" . addslashes($db_input_session['host']) . "\"\r\n" .
+                                    "database = \"" . addslashes($db_input_session['database']) . "\"\r\n" .
+                                    "user = \"" . addslashes($db_input_session['user']) . "\"\r\n" .
+                                    "password = \"" . addslashes($db_input_session['password']) . "\";";
+                if (@file_put_contents(ROOTPATH . 'iwbx-includes/db.ini', $dbconfig_content) === false) {
+                     $form_errors['general_step2'] = $lang['db_config_write_error'];
+                } else {
+                    unset($_SESSION['install_db_details']);
+                    $current_step = 3;
+                }
+            } catch (PDOException $e) {
+                $db_connection_error_details = $e->getMessage();
+                $form_errors['db_step2'] = $lang['db_reconnect_error'];
+            } catch (\Exception $e) {
+                 $form_errors['sql_install'] = $lang['sql_install_error'] . $e->getMessage();
+            }
+        }
     }
 }
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8"/>
-		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<meta name="description" content=""/>
-		<meta name="author" content=""/>
-		<title>
-			Installasi IndoWapBuilder
-		</title>
-		<link href="iwbx-assets/css/bootstrap.min.css" rel="stylesheet"/>
-		<link href="iwbx-assets/css/font-awesome.min.css" rel="stylesheet"/>
-		<link href="iwbx-assets/css/custom.css" rel="stylesheet"/>
-		<!--[if lt IE 9]>
-			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js">
-			</script>
-			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js">
-			</script>
-		<![endif]-->
-	</head>
-	<body>
-		<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-			<div class="container">
-				<div class="navbar-header">
-					<a class="navbar-brand" href="#">IndoWapBuilder</a>
-				</div>
-			</div>
-		</nav>
-		<div class="container main" role="main">
-			<div class="content">
-				<h3 class="head-title">
-					Installasi IndoWapBuilder
-				</h3>
-				<div class="form">
-                <?php
+// --- Prepare Template Variables ---
+$template_vars = [
+    'lang' => $lang,
+    'page_title' => ($current_step == 3) ? $lang['success_title'] : $lang['install_title'],
+    'errors' => $form_errors,
+    'db_connection_error_details' => $db_connection_error_details,
+    'current_step' => $current_step,
 
-if (isset($_POST['submit2'])):
+    'db_host_value' => isset($db_input['host']) ? htmlspecialchars($db_input['host']) : 'localhost',
+    'db_user_value' => isset($db_input['user']) ? htmlspecialchars($db_input['user']) : 'root',
+    'db_password_value' => isset($db_input['password']) ? htmlspecialchars($db_input['password']) : '',
+    'db_database_value' => isset($db_input['database']) ? htmlspecialchars($db_input['database']) : 'indowapbuilder',
 
-?>
-                    <?php
+    'site_url_value' => isset($data_input['siteurl']) ? htmlspecialchars($data_input['siteurl']) : 'http://' . ($_SERVER['SERVER_NAME'] ?? 'localhost'),
+    'admin_name_value' => isset($data_input['admname']) ? htmlspecialchars($data_input['admname']) : 'admin',
+    'admin_email_value' => isset($data_input['admemail']) ? htmlspecialchars($data_input['admemail']) : 'admin@' . ($_SERVER['SERVER_NAME'] ?? 'localhost'),
+    'admin_password_value' => isset($data_input['admpass']) ? htmlspecialchars($data_input['admpass']) : '',
 
-    if ($conn):
+    // These are for repopulating step 2 form's hidden DB fields if it fails & redisplays
+    'db_host_hidden' => isset($_SESSION['install_db_details']['host']) ? htmlspecialchars($_SESSION['install_db_details']['host']) : (isset($db_input['host']) ? htmlspecialchars($db_input['host']) : ''),
+    'db_user_hidden' => isset($_SESSION['install_db_details']['user']) ? htmlspecialchars($_SESSION['install_db_details']['user']) : (isset($db_input['user']) ? htmlspecialchars($db_input['user']) : ''),
+    'db_password_hidden' => '', // Do not persist/re-display password in hidden or any field
+    'db_database_hidden' => isset($_SESSION['install_db_details']['database']) ? htmlspecialchars($_SESSION['install_db_details']['database']) : (isset($db_input['database']) ? htmlspecialchars($db_input['database']) : ''),
 
-?>
-                    <?php
+    'admin_panel_url' => 'index.php', // Default to root, assuming /admin will be routed by main app
+];
 
-        install_indowapbuilder($pdo, 'indowapbuilder.sql');
-        $q = $pdo->prepare("UPDATE `set` SET `val` = ? WHERE `key` = ?");
-        $q->execute(array($data['siteurl'], 'siteurl'));
+// --- Determine Main Content Template ---
+$main_content_template = 'step1_db_form.twig';
+if ($current_step === 1) {
+    // Default, already set
+} elseif ($current_step === 2) {
+    $template_vars['page_title'] = $lang['site_admin_setup_title'];
+    // If we are supposed to be on step 2, but lost DB session or form had errors for step 2.
+    if (isset($form_errors['general']) && $form_errors['general'] == $lang['db_details_lost_error']) {
+        // This error means we can't proceed to step 2, so show step 1 again.
+    } elseif (!empty($form_errors)) { // Any other errors on step 2 (validation, db_step2, sql_install)
+        $main_content_template = 'step2_site_admin_form.twig';
+    } elseif ($db_connected || isset($_SESSION['install_db_details'])) { // Successfully connected in step 1 or session exists
+         $main_content_template = 'step2_site_admin_form.twig';
+    }
+    // If none of the above, it implies we should be on step 1 (e.g. initial load of step 2 without session)
 
-        $password_hash = md5(md5($data['admpass']));
+} elseif ($current_step === 3) {
+    $main_content_template = 'success_message.twig';
+}
 
-        $user = $pdo->prepare("INSERT INTO `user` SET `name` = ?, `email` = ?, `password` = ?, `rights` = ?, `regtime` = ?");
-        $user->execute(array(
-            $data['admname'],
-            $data['admemail'],
-            $password_hash,
-            '10',
-            time(),
-            ));
 
-        $uid = $pdo->lastInsertId();
-        $_SESSION['uid'] = $uid;
-        $_SESSION['upw'] = md5($data['admpass']);
-        $dbconfig = "host = \"" . addslashes($db['host']) . "\"\r\n" . "database = \"" .
-            addslashes($db['database']) . "\"\r\n" . "user = \"" . addslashes($db['user']) .
-            "\"\r\n" . "password = \"" . addslashes($db['password']) . "\";";
-        @file_put_contents('iwbx-includes/db.ini', $dbconfig);
+// --- Render ---
+try {
+    if ($twig !== null) { // Ensure twig was initialized
+        echo $twig->render('layout.twig', array_merge($template_vars, ['main_content_template' => $main_content_template]));
+    } else {
+        die("Twig environment not available. Installation cannot proceed.");
+    }
+} catch (\Throwable $e) {
+    die("Error during template rendering: " . $e->getMessage() . "<br>Attempted Template: " . $main_content_template . "<br><pre>" . $e->getTraceAsString() . "</pre>");
+}
 
 ?>
-                    <div class="alert alert-success">
-                        Installasi berhasil diselesaikan. Silakan <a class="alert-link" href="index.php/admin">Admin Panel</a>
-                    </div>
-                    <div class="alert alert-danger">
-                        Demi keamanan harap hapus file <strong>install.php</strong>
-                    </div>
-                    <?php
-
-    else:
-
-?>
-                    <div class="alert alert-danger">Tidak dapat terhubung ke database</div>
-                    <div class="alert alert-info"><?php
-
-        echo $err_conn;
-
-?></div>
-                    <p><a class="btn btn-default btn-sm" href="install.php?">Kembali</a></p>
-                    <?php
-
-    endif
-
-?>
-                <?php
-
-    elseif (isset($_POST['submit1'])):
-
-?>
-                    <?php
-
-        if ($conn):
-
-?>
-                    <form method="post" action="install.php">
-						<div class="alert alert-info">
-							<div class="form-group">
-								<label>
-									URL Situs
-								</label>
-								<input class="form-control input-sm" type="text" name="data[siteurl]" value="http://<?php
-
-            echo $_SERVER['SERVER_NAME'];
-
-?>"/>
-								<p class="help-block">
-									URL Situs tanpa diakhiri garis miring
-								</p>
-							</div>
-						</div>
-						<div class="alert alert-danger">
-							<div class="form-group">
-								<label>
-									Nama Admin
-								</label>
-								<input class="form-control input-sm" type="text" name="data[admname]" value="admin"/>
-								<p class="help-block">
-									Jika lebih dari satu pisahkan dengan tanda , (koma)
-								</p>
-							</div>
-							<div class="form-group">
-								<label>
-									Email Admin
-								</label>
-								<input class="form-control input-sm" type="text" name="data[admemail]" value="admin@<?php
-
-            echo $_SERVER['SERVER_NAME'];
-
-?>"/>
-							</div>
-							<div class="form-group">
-								<label>
-									Kata sandi Admin
-								</label>
-								<input class="form-control input-sm" type="text" name="data[admpass]" value="admin123"/>
-							</div>
-						</div>
-						<p>
-							<button class="btn btn-primary btn-sm" type="submit" name="submit2">
-								Install
-							</button>
-						</p>
-                        <input type="hidden" name="db[host]" value="<?php
-
-            echo htmlentities($db['host']);
-
-?>"/>
-                        <input type="hidden" name="db[user]" value="<?php
-
-            echo htmlentities($db['user']);
-
-?>"/>
-                        <input type="hidden" name="db[password]" value="<?php
-
-            echo htmlentities($db['password']);
-
-?>"/>
-                        <input type="hidden" name="db[database]" value="<?php
-
-            echo htmlentities($db['database']);
-
-?>"/>
-					</form>
-                    <?php
-
-        else:
-
-?>
-                    <div class="alert alert-danger">Tidak dapat terhubung ke database</div>
-                    <div class="alert alert-info"><?php
-
-            echo $err_conn;
-
-?></div>
-                    <p><a class="btn btn-default btn-sm" href="install.php?">Kembali</a></p>
-                    <?php
-
-        endif
-
-?>
-                <?php
-
-        else:
-
-?>
-                    <form method="post" action="install.php">
-						<div class="alert alert-warning">
-							<div class="form-group">
-								<label>
-									MySQL Host
-								</label>
-								<input class="form-control input-sm" type="text" name="db[host]" value="localhost"/>
-							</div>
-							<div class="form-group">
-								<label>
-									MySQL User
-								</label>
-								<input class="form-control input-sm" type="text" name="db[user]" value="root"/>
-							</div>
-							<div class="form-group">
-								<label>
-									MySQL Password
-								</label>
-								<input class="form-control input-sm" type="text" name="db[password]" value=""/>
-							</div>
-                            <div class="form-group">
-								<label>
-									MySQL Database
-								</label>
-								<input class="form-control input-sm" type="text" name="db[database]" value="indowapbuilder"/>
-							</div>
-						</div>
-						<p>
-							<button class="btn btn-primary btn-sm" type="submit" name="submit1">
-								Lanjutkan
-							</button>
-						</p>
-					</form>
-                    <?php
-
-        endif
-
-?>
-				</div>
-			</div>
-			<div id="footer">
-				<div class="nav-footer">
-					<a href="http://facebook.com/groups/1030305466996373/"><i class="fa fa-facebook"></i> Facebook</a>
-					<a href="http://google.com/+AchunkJealousMan"><i class="fa fa-google-plus"></i> Google+</a>
-				</div>
-				<p>
-					&copy; 2014 IndoWapBuilder
-				</p>
-			</div>
-		</div>
-        <script src="iwbx-assets/js/jquery-2.1.1.min.js"></script>
-        <script src="iwbx-assets/js/bootstrap.min.js"></script>
-	</body>
-
-</html>

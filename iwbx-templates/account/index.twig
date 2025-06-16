@@ -1,0 +1,54 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.account_title|default('Akun Saya')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.account_heading|default('Akun Saya')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_account|default('Akun') }}</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-md-4 mb-3"> {# Using col-md for medium and up, mb-3 for spacing #}
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/account/edit_profile"><i class="fa fa-edit fa-fw me-2"></i>{{ lang.edit_profile_link|default('Edit Profile') }}</a>
+                <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/account/change_password"><i class="fa fa-lock fa-fw me-2"></i>{{ lang.change_password_link|default('Ubah Kata Sandi') }}</a>
+                {% if user_data.rights == 10 %} {# Assuming '10' means admin rights #}
+                    <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/admin"><i class="fa fa-shield fa-fw me-2"></i>{{ lang.admin_panel_link|default('Admin Panel') }}</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-8">
+            {# Using a card for better presentation of user details #}
+            <div class="card">
+                <div class="card-header">{{ lang.user_details_heading|default('Detail Pengguna') }}</div>
+                <div class="card-body">
+                    <dl class="row"> {# Using row for dl-horizontal effect #}
+                        <dt class="col-sm-4">{{ lang.user_id_label|default('ID') }}</dt>
+                        <dd class="col-sm-8">{{ user_data.user_id|e }}</dd>
+
+                        <dt class="col-sm-4">{{ lang.name_label|default('Nama') }}</dt>
+                        <dd class="col-sm-8">{{ user_data.name|e }}</dd>
+
+                        <dt class="col-sm-4">{{ lang.email_label|default('Email') }}</dt>
+                        <dd class="col-sm-8">{{ user_data.email|e }} <span class="text-muted">{{ lang.email_hidden_note|default('(tersembunyi)') }}</span></dd>
+
+                        <dt class="col-sm-4">{{ lang.gender_label|default('Jenis Kelamin') }}</dt>
+                <dd>
+                    {% if user_data.gender == 'male' %}
+                        {{ lang.gender_male|default('Laki-laki') }}
+                    {% elseif user_data.gender == 'female' %}
+                        {{ lang.gender_female|default('Perempuan') }}
+                    {% else %}
+                        {{ lang.gender_not_specified|default('Tidak ditentukan') }}
+                    {% endif %}
+                </dd>
+
+                <dt>{{ lang.registered_on_label|default('Mendaftar') }}</dt>
+                <dd>{{ user_data.regtime_formatted }}</dd> {# Assuming regtime is pre-formatted by Func::displayDate #}
+            </dl>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.domain_check_title|default('Domain Check Results')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.domain_check_results_heading|default('Hasil Pengecekan Domain')) }}</h3>
+
+    {# Form for new check - same as on index, maybe make this a macro or include later if DRY is needed #}
+    <div class="domain-check">
+        <form role="form" action="{{ form_action_url|e('html_attr') }}" method="post">
+            <h4 class="text-center">{{ lang.perform_another_check|default('Periksa ketersediaan subdomain lainnya') }}</h4>
+            <div class="input-group">
+                <input class="form-control input-sm" name="subdomain" value="{{ subdomain_value|e('html_attr') }}" placeholder="{{ lang.subdomain_placeholder|default('Masukan subdomain') }}"/>
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-primary btn-sm">{{ lang.check_button|default('Check') }}</button>
+                </span>
+            </div>
+            <p><div class="row">
+                {% for domain_option in all_available_domains_for_form %}
+                    <div class="col-xs-6">
+                        <div class="checkbox">
+                            <label>
+                                {# Check if this domain was part of the submitted domains for this check #}
+                                <input type="checkbox" name="domains[]" value="{{ domain_option|e('html_attr') }}" {% if domain_option in checked_domains %}checked{% endif %}/> {{ domain_option|e }}
+                            </label>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-xs-12"><p>{{ lang.no_domains_configured|default('No domains configured for checking.') }}</p></div>
+                {% endfor %}
+            </div></p>
+        </form>
+    </div>
+
+    <hr/>
+
+    {% if results is defined and results is not empty %}
+        <h4>{{ lang.results_for_subdomain|default('Hasil untuk subdomain') }} "{{ subdomain_value|e }}":</h4>
+        <div class="row" style="margin-top:20px;">
+            {% for result in results %}
+                <div class="col-sm-6" style="margin-bottom: 15px;">
+                    <div style="background-color:#f9f9f9;box-shadow: 0 3px 9px #ccc;padding:10px;">
+                        {% if result.available %}
+                            <div class="alert alert-success" style="margin-bottom:5px">
+                                <h4>{{ result.url|e }}</h4>
+                                <p>{{ lang.domain_available|default('Domain masih tersedia!') }}</p>
+                            </div>
+                            <p><a class="btn btn-primary btn-block btn-sm" href="{{ result.register_url|e('html_attr') }}">{{ lang.register_domain_button|default('Pendaftaran') }}</a></p>
+                        {% else %}
+                            <div class="alert alert-danger" style="margin-bottom:5px">
+                                <h4>{{ result.url|e }}</h4>
+                                <p>{{ lang.domain_unavailable|default('Domain tidak tersedia!') }}</p>
+                            </div>
+                            <p><a class="btn btn-primary btn-block btn-sm" href="{{ result.whois_url|e('html_attr') }}">{{ lang.whois_button|default('WHOIS') }}</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% elseif submitted_subdomain %}  {# Only show "no results" if a subdomain was actually submitted #}
+        <p>{{ lang.no_domains_selected_for_check|default('Tidak ada domain yang dipilih untuk dicek, atau subdomain tidak valid.') }}</p>
+    {% endif %}
+
+{% endblock %}

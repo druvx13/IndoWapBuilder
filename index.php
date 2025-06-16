@@ -22,7 +22,9 @@ if (is_dir(ROOTPATH . 'iwbx-sites/' . $site_domain))
 {
     $route = isset($_GET['route']) ? Func::validateRoute(trim($_GET['route'])) :
         'index.html';
-    $ext = strtolower(substr(strrchr($route, "."), 1));
+    // Use pathinfo to get the extension
+    $ext = strtolower(pathinfo($route, PATHINFO_EXTENSION));
+
     if (is_file(ROOTPATH . 'iwbx-sites/' . $site_domain . '/' . $route) && $ext !=
         'html')
     {

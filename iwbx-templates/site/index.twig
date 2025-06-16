@@ -1,0 +1,46 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(set.sitename) }} - {{ lang.tagline|default('Free Wap Site Builder') }}{% endblock %}
+
+{% block content %}
+    <h3 class="text-center">{{ lang.main_heading|default('Buat wap site gratis') }}</h3>
+    <p style="margin-bottom:30px;" class="text-center">{{ set.sitename|e }} {{ lang.main_tagline|default('adalah tempat terbaik untuk situs pribadi ataupun situs usaha.') }}</p>
+
+    <div class="domain-check">
+        <form role="form" action="{{ domain_check_url|e('html_attr') }}" method="post">
+            <h4 class="text-center">{{ lang.domain_check_heading|default('Periksa ketersediaan subdomain') }}</h4>
+            <div class="input-group">
+                <input class="form-control input-sm" name="subdomain" placeholder="{{ lang.subdomain_placeholder|default('Masukan subdomain') }}"/>
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-primary btn-sm">{{ lang.check_button|default('Check') }}</button>
+                </span>
+            </div>
+            <p><div class="row">
+                {% for domain_option in available_domains %}
+                    <div class="col-xs-6">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="domains[]" value="{{ domain_option|e('html_attr') }}"/> {{ domain_option|e }}
+                            </label>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-xs-12"><p>{{ lang.no_domains_configured|default('No domains configured for checking.') }}</p></div>
+                {% endfor %}
+            </div></p>
+        </form>
+    </div>
+
+    <div class="row fiture">
+        <div class="col-sm-6">
+            <div class="bg-red fiture-icon"><i class="fa fa-globe"></i></div>
+            <h4 class="fiture-title">{{ lang.feature_multisite_title|default('Multi Site') }}</h4>
+            <p class="margin">{{ lang.feature_multisite_desc|default('Gak perlu bikin banyak akun kalo cuma mau bikin beberapa situs, karena dalam satu akun Kamu bisa bikin lebih dari satu situs.') }}</p>
+        </div>
+        <div class="col-sm-6">
+            <div class="bg-green fiture-icon"><i class="fa fa-code"></i></div>
+            <h4 class="fiture-title">{{ lang.feature_template_title|default('Template Sistem') }}</h4>
+            <p class="margin">{{ lang.feature_template_desc|default('Sistem template yang memiliki banyak fungsi dan modul-modul canggih seperti: Blog, Chat, dll.') }}</p>
+        </div>
+    </div>
+{% endblock %}

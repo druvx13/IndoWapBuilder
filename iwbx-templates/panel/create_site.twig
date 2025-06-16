@@ -1,0 +1,58 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.create_site_title|default('Buat Situs Baru')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.create_site_heading|default('Membuat Situs Baru')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel">{{ lang.breadcrumb_panel|default('Panel') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_create_site|default('Buat Situs') }}</li>
+    </ol>
+
+    {% if max_sites_reached %}
+        <div class="alert alert-danger mt-3" role="alert">
+            {{ lang.max_sites_error_message|default('Anda sudah tidak diijinkan lagi membuat situs baru, Maksimal jumlah situs per user adalah %maxsites%.')|replace({'%maxsites%': max_sites_limit}) }}
+        </div>
+    {% else %}
+        {# Display general form errors if any #}
+        {% if errors.general %}
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                {{ errors.general }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6"> {# Centered form container #}
+                <form role="form" action="{{ form_action_url|e('html_attr') }}" method="post" class="mt-3 needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="subdomain" class="form-label">{{ lang.subdomain_label|default('Subdomain') }}</label>
+                        <div class="input-group input-group-sm">
+                            <input class="form-control {% if errors.subdomain %}is-invalid{% endif %}" type="text" id="subdomain" name="data[subdomain]" value="{{ form_values.subdomain|e('html_attr') }}" required/>
+                            {% if available_domains is not empty %}
+                            <span class="input-group-text">.</span>
+                            <select class="form-select {% if errors.domain %}is-invalid{% endif %}" id="domain" name="data[domain]">
+                                {% for domain_option in available_domains %}
+                                    <option value="{{ domain_option|e('html_attr') }}" {% if form_values.domain == domain_option %}selected{% endif %}>{{ domain_option|e }}</option>
+                                {% endfor %}
+                            </select>
+                            {% endif %}
+                        </div>
+                        {% if errors.subdomain %}<div class="invalid-feedback d-block">{{ errors.subdomain }}</div>{% endif %}
+                        {% if errors.domain %}<div class="invalid-feedback d-block">{{ errors.domain }}</div>{% endif %}
+                         <div class="form-text">{{ lang.subdomain_help|default('Nama subdomain untuk situs Anda.') }}</div>
+                    </div>
+
+                    {# Original template had separate domain select, now integrated with input group #}
+                    {# This is a common BS5 pattern for subdomain.domain.com type inputs #}
+
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-primary btn-sm" type="submit" name="submit">{{ lang.create_button|default('Membuat') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.settings_title|default('Pengaturan Situs')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.settings_heading|default('Pengaturan Situs')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/admin">{{ lang.breadcrumb_admin|default('Admin') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_settings|default('Pengaturan') }}</li>
+    </ol>
+
+    {# Display general form errors if any #}
+    {% if errors.general %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ errors.general }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    <form method="post" action="{{ form_action_url|e('html_attr') }}" class="mt-3 needs-validation" novalidate>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white"> <!-- Using bg-info for the first section -->
+                <h5 class="mb-0">{{ lang.general_settings_legend|default('Pengaturan Umum Situs') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="siteurl" class="form-label">{{ lang.site_url_label|default('URL Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.siteurl %}is-invalid{% endif %}" id="siteurl" type="url" name="siteurl" value="{{ current_settings.siteurl|e('html_attr') }}" required/>
+                    {% if errors.siteurl %}<div class="invalid-feedback">{{ errors.siteurl }}</div>{% endif %}
+                    <div class="form-text">{{ lang.site_url_help|default('URL Situs tanpa diakhiri garis miring') }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sitename" class="form-label">{{ lang.site_name_label|default('Nama Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.sitename %}is-invalid{% endif %}" id="sitename" type="text" name="sitename" value="{{ current_settings.sitename|e('html_attr') }}" required/>
+                    {% if errors.sitename %}<div class="invalid-feedback">{{ errors.sitename }}</div>{% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="siteemail" class="form-label">{{ lang.site_email_label|default('Email Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.siteemail %}is-invalid{% endif %}" id="siteemail" type="email" name="siteemail" value="{{ current_settings.siteemail|e('html_attr') }}" required/>
+                    {% if errors.siteemail %}<div class="invalid-feedback">{{ errors.siteemail }}</div>{% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="timezone" class="form-label">{{ lang.timezone_label|default('Zona Waktu') }}</label>
+                    <input class="form-control form-control-sm {% if errors.timezone %}is-invalid{% endif %}" id="timezone" type="text" name="timezone" value="{{ current_settings.timezone|e('html_attr') }}" required/>
+                    {% if errors.timezone %}<div class="invalid-feedback">{{ errors.timezone }}</div>{% endif %}
+                    <div class="form-text">{{ lang.timezone_help|default('Contoh: Asia/Jakarta, America/New_York, atau UTC offset seperti +7, -5') }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="pageview" class="form-label">{{ lang.list_per_page_label|default('List Per Halaman') }}</label>
+                    <input class="form-control form-control-sm {% if errors.pageview %}is-invalid{% endif %}" id="pageview" type="number" name="pageview" value="{{ current_settings.pageview|e('html_attr') }}" required/>
+                    {% if errors.pageview %}<div class="invalid-feedback">{{ errors.pageview }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark"> <!-- Using bg-warning for the second section -->
+                 <h5 class="mb-0">{{ lang.limits_settings_legend|default('Pengaturan Domain & Batasan') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="domains" class="form-label">{{ lang.site_domains_label|default('Domain Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.domains %}is-invalid{% endif %}" id="domains" type="text" name="domains" value="{{ current_settings.domains_str|e('html_attr') }}" required/>
+                    {% if errors.domains %}<div class="invalid-feedback">{{ errors.domains }}</div>{% endif %}
+                    <div class="form-text">{{ lang.site_domains_help|default('Jika lebih dari satu pisahkan dengan tanda , (koma)') }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="maxsites" class="form-label">{{ lang.max_sites_label|default('Maks Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.maxsites %}is-invalid{% endif %}" id="maxsites" type="number" name="maxsites" value="{{ current_settings.maxsites|e('html_attr') }}" required/>
+                    {% if errors.maxsites %}<div class="invalid-feedback">{{ errors.maxsites }}</div>{% endif %}
+                    <div class="form-text">{{ lang.max_sites_help|default('Maksimal jumlah situs per user') }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="filesize" class="form-label">{{ lang.max_upload_label|default('Maks Upload') }}</label>
+                    <input class="form-control form-control-sm {% if errors.filesize %}is-invalid{% endif %}" id="filesize" type="number" name="filesize" value="{{ current_settings.filesize|e('html_attr') }}" required/>
+                    {% if errors.filesize %}<div class="invalid-feedback">{{ errors.filesize }}</div>{% endif %}
+                    <div class="form-text">{{ lang.max_upload_help|default('Besar file maksimal pada yang diupload (dalam kb).') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary btn-sm" type="submit" name="submit">{{ lang.save_button|default('Simpan Pengaturan') }}</button>
+        </div>
+    </form>
+{% endblock %}

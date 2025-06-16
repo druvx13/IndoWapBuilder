@@ -1,0 +1,49 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.edit_file_title|default('Edit File')) }} - {{ item_name|e }} - {{ parent() }}{% endblock %}
+
+{% block head_extra %}
+    {# Add CodeMirror or other editor assets here if desired in future #}
+{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.edit_file_heading|default('Edit File')) }}: {{ item_name|e }}</h3>
+
+    <ol class="breadcrumb">
+        <li><a href="{{ baseurl_root }}/panel/dashboard"><i class="fa fa-dashboard"></i> {{ lang.breadcrumb_dashboard|default('Dashboard') }} ({{ site.url|e }})</a></li>
+        <li><a href="{{ base_fm_url }}"><i class="fa fa-folder-open"></i> {{ lang.breadcrumb_file_manager_root|default('File Manager') }}</a></li>
+        {% for segment in breadcrumb_segments %}
+            <li><a href="{{ segment.url|e('html_attr') }}">{{ segment.name|e }}</a></li>
+        {% endfor %}
+        <li class="active">{{ item_name|e }}</li>
+    </ol>
+
+    <form role="form" action="{{ form_action_url|e('html_attr') }}" method="post">
+        {% if result_messages %}
+            {% for type, message in result_messages %}
+                 <div class="alert alert-{{ type == 'error' ? 'danger' : type }}">{{ message|raw }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-group">
+            <div class="row">
+                <div class="col-sm-6">
+                     <label for="code">{{ lang.code_label|default('Kode') }}</label>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a class="btn btn-info btn-xs" href="{{ preview_url|e('html_attr') }}" target="_blank"><i class="fa fa-eye"></i> {{ lang.preview_button|default('Preview') }}</a>
+                </div>
+            </div>
+            <textarea class="form-control" id="code" name="code" rows="20">{{ file_content|e('html') }}</textarea>
+        </div>
+        <p>
+            <button class="btn btn-primary btn-sm" type="submit" name="submit_save_file"><i class="fa fa-save me-1"></i> {{ lang.save_button|default('Simpan') }}</button>
+            <a class="btn btn-secondary btn-sm" href="{{ cancel_url|e('html_attr') }}"><i class="fa fa-times me-1"></i> {{ lang.cancel_button|default('Batal') }}</a>
+        </p>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    {# Add JS for CodeMirror or other editor here #}
+{% endblock %}

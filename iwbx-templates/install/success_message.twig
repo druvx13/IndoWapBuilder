@@ -1,0 +1,26 @@
+{% extends "layout.twig" %} {# Assuming layout.twig is in the same 'install' directory #}
+
+{% block title %}{{ lang.success_title|default('Installation Successful') }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center"> {# Centered content #}
+            <div class="alert alert-success mt-4" role="alert">
+                <h4 class="alert-heading">{{ lang.installation_successful_heading|default('Instalasi Berhasil!') }}</h4>
+                <p>{{ lang.installation_successful|default('Instalasi berhasil diselesaikan.') }}</p>
+                <hr>
+                <p class="mb-0">
+                    {{ lang.proceed_to_admin_panel_html|default('Silakan <a href="%admin_url%" class="alert-link">klik di sini</a> untuk menuju ke Admin Panel.')
+                        |replace({'%admin_url%': admin_panel_url|e('html_attr')})
+                        |raw
+                    }}
+                </p>
+            </div>
+            <div class="alert alert-danger mt-3" role="alert">
+                <i class="fa fa-exclamation-triangle"></i> {{ lang.delete_install_warning|raw }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block messages %}{# Override messages block to prevent default error display on success page #}{% endblock %}

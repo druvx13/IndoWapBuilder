@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="{{ lang_code|default('id') }}"> {# Assuming lang_code might be passed, default to 'id' #}
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <title>{% block title %}{{ page_title|default(set.sitename|default('IndoWapBuilder')) }}{% endblock %}</title>
+
+    <meta name="description" content="{% block meta_description %}{{ meta_description|default(set.sitedesc|default('')) }}{% endblock %}"/>
+    <meta name="keywords" content="{% block meta_keywords %}{{ meta_keywords|default(set.sitekeywords|default('')) }}{% endblock %}"/>
+    <meta name="author" content="IndoWapBuilder"/>
+
+    {# Asset paths: Assuming baseurl is available or paths are root-relative starting with / #}
+    {# If install.php defines ROOTPATH and base.php makes $set available, then set.siteurl could be used.
+       For now, using root-relative paths. $baseurl from PHP is $set.baseurl which includes index.php.
+       $set.siteurl is the path without index.php.
+    #}
+    {% set assets_base = set.siteurl|default('') %}
+
+    <link href="{{ assets_base }}/iwbx-assets/css/bootstrap.min.css" rel="stylesheet"/> {# Path to new BS5 CSS #}
+    <link href="{{ assets_base }}/iwbx-assets/css/font-awesome.min.css" rel="stylesheet"/> {# Assuming Font Awesome 4 for now #}
+    <link href="{{ assets_base }}/iwbx-assets/css/custom.css" rel="stylesheet"/>
+
+    {% block head_extra %}{% endblock %}
+    {# IE9 support removed #}
+</head>
+<body>
+    {# Bootstrap 5 Navbar structure #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> {# Updated classes: navbar-dark bg-dark for a common theme, navbar-expand-lg for responsiveness #}
+        <div class="container">
+            <a class="navbar-brand" href="{{ baseurl_root|default(set.baseurl) }}">{{ set.sitename|e }}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="{{ lang.menu_toggle|default('Toggle navigation') }}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0"> {# ms-auto for right alignment in BS5 #}
+                    {% if user and user.logIn %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <strong><i class="fa fa-user"></i> {{ user.getName()|e }}</strong>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown"> {# dropdown-menu-end for BS5 right alignment #}
+                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/account"><i class="fa fa-user"></i> {{ lang.menu_account|default('Akun') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/panel"><i class="fa fa-dashboard"></i> {{ lang.menu_panel|default('Panel') }}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.menu_logout|default('Keluar') }}</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item {% if controller == 'site' and action == 'login' %}active{% endif %}">
+                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.menu_login|default('Masuk') }}</a>
+                        </li>
+                        <li class="nav-item {% if controller == 'site' and action == 'register' %}active{% endif %}">
+                            <a class="nav-link" href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.menu_register|default('Pendaftaran') }}</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="container main" role="main" style="padding-top: 56px;"> {# Added padding-top to account for fixed-top navbar #}
+        <div class="content">
+            {% block messages %}
+                {% if session_notice and session_notice.message %}
+                    {# Map notice_type to Bootstrap alert class (BS5 compatible) #}
+                    {% set alert_class = 'alert-info' %}
+                    {% if session_notice.type == 'error' %}
+                        {% set alert_class = 'alert-danger' %}
+                    {% elseif session_notice.type == 'success' %}
+                        {% set alert_class = 'alert-success' %}
+                    {% elseif session_notice.type == 'warning' %}
+                        {% set alert_class = 'alert-warning' %}
+                    {% endif %}
+                    <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert"> {# Added fade show for BS5 #}
+                        {{ session_notice.message|raw }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> {# BS5 close button #}
+                    </div>
+                {% endif %}
+                {% if form_errors and form_errors is iterable %}
+                    {% for category, messages in form_errors %}
+                        {% if messages is iterable %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    {{ message|e }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                             <div class="alert alert-danger alert-dismissible" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                {{ messages|e }} {# If not iterable, assume it's a single message string #}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% elseif form_errors and form_errors is string %}
+                     <div class="alert alert-danger alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{ form_errors|e }}
+                    </div>
+                {% endif %}
+
+            {% endblock messages %}
+
+            {% block content %}{% endblock %}
+        </div> <!-- /.content -->
+
+        <div id="footer">
+            <div class="nav-footer">
+                <a href="{{ baseurl_root|default(set.baseurl) }}/"><i class="fa fa-home"></i> {{ lang.footer_home|default('Home') }}</a>
+                {% if user and user.id %}
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/account"><i class="fa fa-user"></i> {{ user.getName()|e }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/panel"><i class="fa fa-dashboard"></i> {{ lang.footer_panel|default('Panel') }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/logout"><i class="fa fa-sign-out"></i> {{ lang.footer_logout|default('Keluar') }}</a>
+                {% else %}
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/login"><i class="fa fa-sign-in"></i> {{ lang.footer_login|default('Masuk') }}</a>
+                    <a href="{{ baseurl_root|default(set.baseurl) }}/site/register"><i class="fa fa-user"></i> {{ lang.footer_register|default('Pendaftaran') }}</a>
+                {% endif %}
+            </div>
+            <p>&copy; {{ "now"|date("Y") }} {{ set.sitename|e }}</p> {# Updated year to be dynamic #}
+        </div> <!-- /#footer -->
+    </div> <!-- /.container.main -->
+
+    <script src="{{ assets_base }}/iwbx-assets/js/jquery-3.7.1.min.js"></script>
+    <script src="{{ assets_base }}/iwbx-assets/js/bootstrap.bundle.min.js"></script> {# Updated to Bootstrap 5 bundle #}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

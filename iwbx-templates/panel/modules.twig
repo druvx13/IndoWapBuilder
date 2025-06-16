@@ -1,0 +1,42 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.modules_title|default('Modul')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.modules_heading|default('Modul')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel">{{ lang.breadcrumb_panel|default('Panel') }}</a></li>
+        {% if current_site_url %}
+             <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel/dashboard">{{ current_site_url|e }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_modules|default('Modul') }}</li>
+    </ol>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <strong>{{ lang.available_modules_heading|default('Modul Tersedia') }}</strong>
+        </div>
+        {% if modules_list is not empty %}
+            <div class="list-group list-group-flush">
+                {% for module_item in modules_list %}
+                    <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/panel/modules/module/{{ module_item.id|e('html_attr') }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><i class="fa fa-puzzle-piece fa-fw me-2"></i>{{ module_item.name|e }}</h5>
+                            {# <small>Optional: version or other small text</small> #}
+                        </div>
+                        {% if module_item.description %}
+                            <p class="mb-1 text-muted"><small>{{ module_item.description|e }}</small></p>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-body">
+                <p class="card-text">{{ lang.no_modules_available|default('Tidak ada modul yang tersedia.') }}</p>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}

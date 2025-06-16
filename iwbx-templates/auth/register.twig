@@ -1,0 +1,45 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.register_title|default('Register')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.register_heading|default('Pendaftaran')) }}</h3>
+
+    {# Display general form errors if any (e.g. "Pendaftaran gagal...") #}
+    {% if errors.general %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ errors.general }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+      <div class="col-md-6"> {# Adjust column width as needed #}
+        <form role="form" action="{{ form_action_url|e('html_attr') }}" method="post" class="mt-4">
+            <div class="mb-3">
+                <label for="author" class="form-label">{{ lang.name_label|default('Nama Anda') }}</label>
+                <input class="form-control form-control-sm {% if errors.author %}is-invalid{% endif %}" id="author" type="text" name="author" value="{{ author_value|e('html_attr') }}" required/>
+                {% if errors.author %}<div class="invalid-feedback">{{ errors.author }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">{{ lang.email_label|default('Email') }}</label>
+                <input class="form-control form-control-sm {% if errors.email %}is-invalid{% endif %}" id="email" type="email" name="email" value="{{ email_value|e('html_attr') }}" required/>
+                {% if errors.email %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">{{ lang.password_label|default('Kata sandi') }}</label>
+                <input class="form-control form-control-sm {% if errors.password %}is-invalid{% endif %}" id="password" type="password" name="password" value="" required/>
+                {% if errors.password %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="repeat_password" class="form-label">{{ lang.repeat_password_label|default('Ulangi kata sandi') }}</label>
+                <input class="form-control form-control-sm {% if errors.repeat_password %}is-invalid{% endif %}" id="repeat_password" type="password" name="repeat_password" value="" required/>
+                {% if errors.repeat_password %}<div class="invalid-feedback">{{ errors.repeat_password }}</div>{% endif %}
+            </div>
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-sm" type="submit" name="submit">{{ lang.register_button|default('Mendaftar') }}</button>
+            </div>
+        </form>
+      </div>
+    </div>
+{% endblock %}

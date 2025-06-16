@@ -1,0 +1,55 @@
+{% extends "layout.twig" %} {# Assuming layout.twig is in the same 'install' directory #}
+
+{% block title %}{{ lang.db_setup_title|default('Database Setup') }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6"> {# Centered form container #}
+            <h4 class="mb-3">{{ lang.db_setup_title|default('Pengaturan Database') }}</h4>
+
+            {% if errors.db %}
+                <div class="alert alert-danger alert-dismissible fade show p-2 mt-2" role="alert">
+                    {{ errors.db }}
+                    {% if db_connection_error_details %}
+                        <br/>{{ lang.error_db_connect_details }} {{ db_connection_error_details|e }}
+                    {% endif %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            {% if errors.db_host or errors.db_user or errors.db_database %}
+                 <div class="alert alert-danger alert-dismissible fade show p-2 mt-2" role="alert">
+                    {{ lang.fill_all_required_fields|default('Harap isi semua field yang wajib.') }}
+                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                 </div>
+            {% endif %}
+
+
+            <form method="post" action="{{ lang.form_action_url|e('html_attr') }}" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="db_host" class="form-label">{{ lang.mysql_host_label|default('MySQL Host') }}</label>
+                    <input class="form-control form-control-sm {% if errors.db_host %}is-invalid{% endif %}" type="text" id="db_host" name="db[host]" value="{{ db_host_value|e('html_attr') }}" required/>
+                    {% if errors.db_host %}<div class="invalid-feedback">{{ errors.db_host }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="db_user" class="form-label">{{ lang.mysql_user_label|default('MySQL User') }}</label>
+                    <input class="form-control form-control-sm {% if errors.db_user %}is-invalid{% endif %}" type="text" id="db_user" name="db[user]" value="{{ db_user_value|e('html_attr') }}" required/>
+                    {% if errors.db_user %}<div class="invalid-feedback">{{ errors.db_user }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="db_password" class="form-label">{{ lang.mysql_password_label|default('MySQL Password') }}</label>
+                    <input class="form-control form-control-sm" type="password" id="db_password" name="db[password]" value="{{ db_password_value|e('html_attr') }}"/>
+                    {# No specific error display for password, general DB connection error will show #}
+                </div>
+                <div class="mb-3">
+                    <label for="db_database" class="form-label">{{ lang.mysql_database_label|default('MySQL Database') }}</label>
+                    <input class="form-control form-control-sm {% if errors.db_database %}is-invalid{% endif %}" type="text" id="db_database" name="db[database]" value="{{ db_database_value|e('html_attr') }}" required/>
+                    {% if errors.db_database %}<div class="invalid-feedback">{{ errors.db_database }}</div>{% endif %}
+                </div>
+                <div class="d-grid mt-4">
+                    <button class="btn btn-primary btn-sm" type="submit" name="submit_step1">{{ lang.continue_button|default('Lanjutkan') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

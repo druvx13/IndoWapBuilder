@@ -1,0 +1,43 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.delete_site_title|default('Hapus Situs')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.delete_site_heading|default('Hapus Situs')) }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel">{{ lang.breadcrumb_panel|default('Panel') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lang.breadcrumb_delete_site|default('Hapus Situs') }}</li>
+    </ol>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8 col-lg-6">
+            {% if site_to_delete %}
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form method="post" action="{{ form_action_url|e('html_attr') }}">
+                            <input type="hidden" name="site_id" value="{{ site_to_delete.site_id|e('html_attr') }}" />
+                            <div class="alert alert-warning" role="alert">
+                                <h4 class="alert-heading">{{ lang.confirm_delete_heading|default('Konfirmasi Hapus') }}</h4>
+                                <p>{{ lang.confirm_delete_message|default('Kamu yakin akan menghapus situs %site_url%?')|replace({'%site_url%': '<strong>' ~ site_to_delete.url|e ~ '</strong>'})|raw }}</p>
+                                <p class="mb-0">{{ lang.action_cannot_be_undone|default('Tindakan ini tidak dapat dibatalkan.') }}</p>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <button class="btn btn-danger btn-sm" type="submit" name="submit">{{ lang.yes_delete_button|default('Ya, Hapus Situs Ini') }}</button>
+                                <a class="btn btn-secondary btn-sm ms-2" href="{{ baseurl_root }}/panel">{{ lang.cancel_button|default('Batal') }}</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-danger" role="alert">
+                    {{ lang.site_not_found_error|default('Situs yang akan dihapus tidak ditemukan atau Anda tidak memiliki izin.') }}
+                </div>
+                <div class="mt-3">
+                    <a class="btn btn-secondary btn-sm" href="{{ baseurl_root }}/panel">{{ lang.back_to_panel_button|default('Kembali ke Panel') }}</a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -24,12 +24,29 @@ class module_test extends Module
     }
     public function panel()
     {
-        global $user;
-        echo '<h3 class="head-title">Modul::' . __class__ . '</h3>';
-        echo '<div class="alert alert-warning">Ini adalah modul demo' . ($user->data['rights'] ==
-            10 ? ', untuk menghapus modul ini s' .
-            'ilakan hapus file <strong>iwbx-includes/modules/' . __class__ . '.php' : '.') .
-            '</div>';
+        global $user; // $user should be available from the controller scope
+
+        $module_title = 'Panel Modul: ' . self::getName(); // Use static method for name
+        $content_html = '<div class="alert alert-warning">Ini adalah modul demo';
+
+        $can_delete_info_path = null;
+        if (isset($user) && $user->data['rights'] == 10) { // Check if $user is set
+            $content_html .= ', untuk menghapus modul ini silakan hapus file <strong>iwbx-includes/modules/' . __CLASS__ . '.php</strong>';
+            $can_delete_info_path = 'iwbx-includes/modules/' . __CLASS__ . '.php';
+        } else {
+            $content_html .= '.';
+        }
+        $content_html .= '</div>';
+
+        // Return data for Twig template
+        return [
+            'title' => $module_title,
+            'raw_html' => $content_html, // For direct HTML rendering in module_panel_default.twig
+            // Example of more structured data for future:
+            // 'message' => 'Ini adalah modul demo.',
+            // 'can_delete_info_path' => $can_delete_info_path,
+            // 'additional_data' => ['key' => 'value']
+        ];
     }
 }
 

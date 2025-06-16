@@ -1,0 +1,31 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.item_actions_title|default('Tindakan untuk')) }} {{ item.name|e }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ lang.actions_for_item_heading|default('Tindakan untuk') }} {{ item_type_translated|lower }}: {{ item.name|e }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel/dashboard"><i class="fa fa-dashboard"></i> {{ lang.breadcrumb_dashboard|default('Dashboard') }} ({{ site.url|e }})</a></li>
+        <li class="breadcrumb-item"><a href="{{ base_fm_url }}"><i class="fa fa-folder-open"></i> {{ lang.breadcrumb_file_manager_root|default('File Manager') }}</a></li>
+        {% for segment in breadcrumb_segments %}
+            <li class="breadcrumb-item"><a href="{{ segment.url|e('html_attr') }}">{{ segment.name|e }}</a></li>
+        {% endfor %}
+        <li class="breadcrumb-item active" aria-current="page">{{ item.name|e }}</li>
+    </ol>
+
+    <div class="list-group mt-3">
+        <a class="list-group-item list-group-item-action" href="{{ rename_url|e('html_attr') }}"><i class="fa fa-pencil fa-fw me-2"></i>{{ lang.rename_link|default('Ubah nama') }}</a>
+        <a class="list-group-item list-group-item-action" href="{{ move_url|e('html_attr') }}"><i class="fa fa-exchange fa-fw me-2"></i>{{ lang.move_link|default('Pindah') }}</a>
+        <a class="list-group-item list-group-item-action list-group-item-danger text-danger" href="{{ delete_url|e('html_attr') }}"><i class="fa fa-times fa-fw me-2"></i>{{ lang.delete_link|default('Hapus') }}</a>
+        {% if item.type == 'file' %}
+            <a class="list-group-item list-group-item-action" href="{{ download_url|e('html_attr') }}"><i class="fa fa-download fa-fw me-2"></i>{{ lang.download_link|default('Download') }}</a>
+            {% if item.is_editable %}
+                <a class="list-group-item list-group-item-action" href="{{ edit_url|e('html_attr') }}"><i class="fa fa-edit fa-fw me-2"></i>{{ lang.edit_link|default('Edit') }}</a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <p class="mt-4"><a href="{{ parent_dir_url|e('html_attr') }}" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left me-2"></i>{{ lang.back_to_folder_button|default('Kembali ke Folder') }}</a></p>
+
+{% endblock %}

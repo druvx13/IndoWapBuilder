@@ -1,0 +1,174 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.file_manager_title|default('File Manager')) }} - {{ site.url|e }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ page_title|default(lang.file_manager_heading|default('File Manager')) }}: {{ current_path_display|default('/') }}</h3>
+
+    {# Breadcrumbs #}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel/dashboard"><i class="fa fa-dashboard"></i> {{ lang.breadcrumb_dashboard|default('Dashboard') }} ({{ site.url|e }})</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_fm_url }}"><i class="fa fa-folder-open"></i> {{ lang.breadcrumb_file_manager_root|default('File Manager') }}</a></li>
+            {% for segment in breadcrumb_segments %}
+                {% if loop.last %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ segment.name|e }}</li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{{ segment.url|e('html_attr') }}">{{ segment.name|e }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+
+    {# Action Buttons #}
+    <div class="mb-3 p-3 bg-light rounded border">
+        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createDirModal">
+            <i class="fa fa-folder-plus fa-fw me-1"></i> {{ lang.create_directory_button|default('Buat Folder') }}
+        </button>
+        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createFileModal">
+            <i class="fa fa-file-alt fa-fw me-1"></i> {{ lang.create_file_button|default('Buat File') }}
+        </button>
+        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+            <i class="fa fa-upload fa-fw me-1"></i> {{ lang.upload_file_button|default('Upload File') }}
+        </button>
+        {% if move_item_path %}
+             <span class="text-info float-end" style="margin-top: 5px;"> {# Replaced pull-right with float-end #}
+                {{ lang.moving_item_info|default('Memindahkan') }} <strong>{{ move_item_name|e }}</strong>. {{ lang.click_folder_to_move|default('Klik folder tujuan atau') }}
+                <a href="{{ base_fm_url }}{{ current_path_query_params }}" class="btn btn-xs btn-warning">{{ lang.cancel_move|default('Batalkan') }}</a>
+             </span>
+        {% endif %}
+    </div>
+
+    {# File and Directory Listing #}
+    {% if items is not empty %}
+        <ul class="list-group">
+            {# Parent directory link if not in root #}
+            {% if current_path != '' and current_path != '/' and parent_dir_url is not null %}
+                <li class="list-group-item list-group-item-action">
+                    <a href="{{ parent_dir_url|e('html_attr') }}">
+                        <i class="fa fa-arrow-left fa-fw me-2"></i>.. {{ lang.parent_directory|default('(Induk Direktori)') }}
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for item in items %}
+                <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <a href="{{ item.is_dir ? item.browse_url : item.info_url }}" class="text-decoration-none text-dark flex-grow-1">
+                        <i class="fa {{ item.icon|default('fa-file-o') }} fa-fw me-2"></i>{{ item.name|e }}
+                    </a>
+                    {% if item.is_dir and move_item_path and move_item_path != item.full_path %}
+                        <a href="{{ item.move_here_url|e('html_attr') }}" class="btn btn-sm btn-success ms-2">{{ lang.move_here_button|default('Pindahkan ke Sini') }}</a>
+                    {% endif %}
+                    <span class="text-muted small me-2">{{ item.size_formatted|default('') }}</span>
+                    <a href="{{ item.actions_url|e('html_attr') }}" class="btn btn-outline-secondary btn-sm" title="{{ lang.actions_button|default('Tindakan') }}"><i class="fa fa-cog"></i></a>
+                </li>
+            {% endfor %}
+        </ul>
+        {# Pagination (if implemented) would go here #}
+        {% if pagination_html %}
+            {{ pagination_html|raw }} {# Ensure this pagination HTML is BS5 compatible if used #}
+        {% endif %}
+    {% else %}
+         {% if current_path != '' and current_path != '/' and parent_dir_url is not null %}
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-action">
+                    <a href="{{ parent_dir_url|e('html_attr') }}">
+                        <i class="fa fa-arrow-left fa-fw me-2"></i>.. {{ lang.parent_directory|default('(Induk Direktori)') }}
+                    </a>
+                </li>
+            </ul>
+        {% endif %}
+        <div class="alert alert-info mt-3">{{ lang.folder_empty|default('Folder kosong.') }}</div>
+    {% endif %}
+
+    {# Modals for Create Directory, Create File, Upload File #}
+
+    <!-- Create Directory Modal -->
+    <div class="modal fade" id="createDirModal" tabindex="-1" aria-labelledby="createDirModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{{ create_dir_action_url|e('html_attr') }}">
+                    <input type="hidden" name="parent_path" value="{{ current_path|e('html_attr') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createDirModalLabel">{{ lang.create_directory_modal_title|default('Buat Folder Baru') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="new_dir_name" class="form-label">{{ lang.folder_name_label|default('Nama Folder') }}</label>
+                            <input type="text" class="form-control form-control-sm" name="new_item_name" id="new_dir_name" required pattern="^[a-zA-Z0-9._-]+$" title="{{ lang.valid_chars_message|default('Karakter yang diijinkan: a-z, A-Z, 0-9, ., _, -') }}">
+                            <div class="form-text">{{ lang.valid_chars_message|default('Karakter yang diijinkan: a-z, A-Z, 0-9, ., _, -') }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ lang.cancel_button|default('Batal') }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm" name="submit_create_dir">{{ lang.create_button|default('Buat') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create File Modal -->
+    <div class="modal fade" id="createFileModal" tabindex="-1" aria-labelledby="createFileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{{ create_file_action_url|e('html_attr') }}">
+                    <input type="hidden" name="parent_path" value="{{ current_path|e('html_attr') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createFileModalLabel">{{ lang.create_file_modal_title|default('Buat File Baru') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="new_file_name" class="form-label">{{ lang.file_name_label|default('Nama File') }}</label>
+                            <input type="text" class="form-control form-control-sm" name="new_item_name" id="new_file_name" required pattern="^[a-zA-Z0-9._-]+$" title="{{ lang.valid_chars_message|default('Karakter yang diijinkan: a-z, A-Z, 0-9, ., _, -') }}">
+                             <div class="form-text">{{ lang.valid_chars_message|default('Karakter yang diijinkan: a-z, A-Z, 0-9, ., _, -') }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ lang.cancel_button|default('Batal') }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm" name="submit_create_file">{{ lang.create_button|default('Buat') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload File Modal -->
+    <div class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{{ upload_action_url|e('html_attr') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="parent_path" value="{{ current_path|e('html_attr') }}">
+                    <input type="hidden" name="{{ upload_key_name|e('html_attr') }}" value="{{ upload_key_value|e('html_attr') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadFileModalLabel">{{ lang.upload_file_modal_title|default('Upload File') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="berkas" class="form-label">{{ lang.select_file_label|default('Pilih File') }}</label>
+                            <input type="file" class="form-control form-control-sm" name="berkas" id="berkas" required>
+                            <div class="form-text">{{ lang.max_file_size_note|default('Maksimal ukuran %max_size% kb')|replace({'%max_size%': max_upload_size_kb}) }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ lang.cancel_button|default('Batal') }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ lang.upload_button|default('Upload') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    {# Add any page-specific JS here if needed #}
+    <script type="text/javascript">
+        // Basic JS for modals, if not handled by Bootstrap data attributes sufficiently
+        // Example: $('#createDirModal').modal('show');
+    </script>
+{% endblock %}

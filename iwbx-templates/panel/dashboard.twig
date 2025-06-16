@@ -1,0 +1,63 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.dashboard_title|default('Dashboard')) }} - {{ site.url|e }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <h3 class="head-title">{{ lang.dashboard_heading|default('Dashboard Situs') }}: {{ site.url|e }}</h3>
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ baseurl_root|default('/') }}"><i class="fa fa-home"></i> {{ lang.breadcrumb_home|default('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ baseurl_root }}/panel">{{ lang.breadcrumb_panel|default('Panel') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ site.url|e }}</li>
+    </ol>
+
+    <div class="row mt-3">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <strong>{{ lang.modules_heading|default('Modul Terpasang') }}</strong>
+                </div>
+                {% if modules is not empty %}
+                    <div class="list-group list-group-flush">
+                        {% for module_item in modules %}
+                            <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/panel/modules/module/{{ module_item.id|e('html_attr') }}"><i class="fa fa-puzzle-piece fa-fw me-2"></i>{{ module_item.name|e }}</a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card-body">
+                        <p class="card-text">{{ lang.no_modules_installed|default('Tidak ada modul yang terpasang atau tersedia.') }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="list-group mt-3">
+                 <a class="list-group-item list-group-item-action" href="{{ baseurl_root }}/file_manager"><i class="fa fa-folder-open fa-fw me-2"></i>{{ lang.file_manager_link|default('File Manager') }}</a>
+                 {# Add other site-specific management links here, e.g., Site Settings, Domain Management etc. #}
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                     <strong>{{ lang.site_details_heading|default('Detail Situs') }}</strong>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">{{ lang.site_url_label|default('URL') }}</dt>
+                        <dd class="col-sm-8"><a href="//{{ site.url|e }}" target="_blank">http://{{ site.url|e }}</a></dd>
+
+                        <dt class="col-sm-4">{{ lang.created_on_label|default('Dibuat') }}</dt>
+                        <dd class="col-sm-8">{{ site.time_formatted }}</dd>
+
+                        <dt class="col-sm-4">{{ lang.site_status_label|default('Status') }}</dt>
+                        <dd class="col-sm-8"><span class="badge bg-success">{{ lang.site_status_active|default('Aktif') }}</span></dd>
+
+                        <dt class="col-sm-4">{{ lang.disk_usage_label|default('Penggunaan Disk') }}</dt>
+                        <dd class="col-sm-8">N/A</dd> {# Placeholder #}
+                    </dl>
+                    {# Add more site details or quick stats here #}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

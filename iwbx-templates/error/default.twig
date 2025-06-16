@@ -1,0 +1,19 @@
+{% extends "layout/app.twig" %}
+
+{% block title %}{{ page_title|default(lang.error_title|default('Error')) }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="text-center"> {# Center aligning the error content #}
+        <h1 class="display-1 fw-bold">{{ error_code|default('404') }}</h1>
+        <p class="fs-3"> <span class="text-danger">{{ lang.error_oops|default('Oops!') }}</span> {{ error_heading|default(lang.error_heading|default('Kesalahan')) }}</p>
+        <p class="lead">
+            {{ error_message|default(lang.default_error_message|default('Halaman tidak ditemukan atau terjadi kesalahan.'))|raw }}
+        </p>
+
+        {% if debug_info and set.debug_mode %} {# Example: only show if debug mode is on #}
+            <pre class="text-start border p-3 mt-4">{{ debug_info|e }}</pre> {# text-start for pre content #}
+        {% endif %}
+
+        <a href="{{ home_url|default(baseurl_root) }}" class="btn btn-primary mt-4">{{ lang.go_to_homepage|default('Kembali ke Beranda') }}</a>
+    </div>
+{% endblock %}

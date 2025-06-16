@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{ page_title|default(lang.install_title|default('IndoWapBuilder Installation')) }}</title>
+    <link href="iwbx-assets/css/bootstrap.min.css" rel="stylesheet"/> {# Path to new BS5 CSS #}
+    <link href="iwbx-assets/css/font-awesome.min.css" rel="stylesheet"/> {# Assuming Font Awesome 4 for now #}
+    <link href="iwbx-assets/css/custom.css" rel="stylesheet"/>
+    {# IE9 support removed #}
+</head>
+<body>
+    {# Bootstrap 5 Navbar structure - simplified for install page #}
+    <nav class="navbar navbar-dark bg-dark fixed-top">  {# Updated classes: navbar-dark bg-dark #}
+        <div class="container">
+            <a class="navbar-brand" href="#">IndoWapBuilder</a>
+            {# No toggler needed for simple install navbar #}
+        </div>
+    </nav>
+
+    <div class="container main" role="main" style="padding-top: 56px;"> {# Added padding-top to account for fixed-top navbar #}
+        <div class="content">
+            <h3 class="head-title">{{ page_title|default(lang.install_title|default('IndoWapBuilder Installation')) }}</h3>
+
+            {% block messages %}
+                {% if errors.general %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ errors.general }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+                {% if db_connection_error_details and not errors.db %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ lang.error_db_connect }} {{ lang.error_db_connect_details }} {{ db_connection_error_details }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% elseif errors.db and db_connection_error_details %}
+                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ errors.db }} {{ lang.error_db_connect_details }} {{ db_connection_error_details }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% elseif errors.db %}
+                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ errors.db }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+            {% endblock messages %}
+
+            <div class="form-container">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+        <div id="footer">
+            <div class="nav-footer">
+                <a href="http://facebook.com/groups/1030305466996373/"><i class="fa fa-facebook"></i> Facebook</a>
+                <a href="http://google.com/+AchunkJealousMan"><i class="fa fa-google-plus"></i> Google+</a>
+            </div>
+            <p>&copy; 2014 IndoWapBuilder</p>
+        </div>
+    </div>
+
+    <script src="iwbx-assets/js/jquery-3.7.1.min.js"></script>
+    <script src="iwbx-assets/js/bootstrap.bundle.min.js"></script> {# Updated to Bootstrap 5 bundle #}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

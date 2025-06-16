@@ -1,0 +1,63 @@
+{% extends "layout.twig" %} {# Assuming layout.twig is in the same 'install' directory #}
+
+{% block title %}{{ lang.site_admin_setup_title|default('Site & Admin Setup') }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6"> {# Centered form container #}
+        <h4 class="mb-3">{{ lang.site_admin_setup_title|default('Pengaturan Situs & Admin') }}</h4>
+
+        {% if errors.general_step2 or errors.db_step2 or errors.sql_install %}
+            <div class="alert alert-danger alert-dismissible fade show p-2 mt-2" role="alert">
+                {% if errors.general_step2 %}{{ errors.general_step2 }}<br>{% endif %}
+                {% if errors.db_step2 %}{{ errors.db_step2 }}<br>{% endif %}
+                {% if errors.sql_install %}{{ errors.sql_install }}<br>{% endif %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ lang.form_action_url|e('html_attr') }}" class="needs-validation" novalidate>
+            {# Hidden fields are kept for carrying over DB details if step 2 POSTs back to itself with errors #}
+            <input type="hidden" name="db[host]" value="{{ db_host_hidden|e('html_attr') }}"/>
+            <input type="hidden" name="db[user]" value="{{ db_user_hidden|e('html_attr') }}"/>
+            <input type="hidden" name="db[password]" value="{{ db_password_hidden|e('html_attr') }}"/>
+            <input type="hidden" name="db[database]" value="{{ db_database_hidden|e('html_attr') }}"/>
+
+            <fieldset class="mb-3 p-3 border rounded">
+                <legend class="w-auto px-2 fs-6">{{ lang.site_details_legend|default('Detail Situs') }}</legend>
+                <div class="mb-3">
+                    <label for="siteurl" class="form-label">{{ lang.site_url_label|default('URL Situs') }}</label>
+                    <input class="form-control form-control-sm {% if errors.siteurl %}is-invalid{% endif %}" type="url" id="siteurl" name="data[siteurl]" value="{{ site_url_value|e('html_attr') }}" required/>
+                    {% if errors.siteurl %}<div class="invalid-feedback">{{ errors.siteurl }}</div>{% endif %}
+                    <div class="form-text">{{ lang.site_url_help|default('URL Situs tanpa diakhiri garis miring') }}</div>
+                </div>
+            </fieldset>
+
+            <fieldset class="mb-3 p-3 border rounded">
+                 <legend class="w-auto px-2 fs-6">{{ lang.admin_details_legend|default('Detail Admin') }}</legend>
+                <div class="mb-3">
+                    <label for="admname" class="form-label">{{ lang.admin_name_label|default('Nama Admin') }}</label>
+                    <input class="form-control form-control-sm {% if errors.admname %}is-invalid{% endif %}" type="text" id="admname" name="data[admname]" value="{{ admin_name_value|e('html_attr') }}" required/>
+                    {% if errors.admname %}<div class="invalid-feedback">{{ errors.admname }}</div>{% endif %}
+                    <div class="form-text">{{ lang.admin_name_help|default('Jika lebih dari satu pisahkan dengan tanda , (koma)') }}</div>
+                </div>
+                <div class="mb-3">
+                    <label for="admemail" class="form-label">{{ lang.admin_email_label|default('Email Admin') }}</label>
+                    <input class="form-control form-control-sm {% if errors.admemail %}is-invalid{% endif %}" type="email" id="admemail" name="data[admemail]" value="{{ admin_email_value|e('html_attr') }}" required/>
+                    {% if errors.admemail %}<div class="invalid-feedback">{{ errors.admemail }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="admpass" class="form-label">{{ lang.admin_password_label|default('Kata sandi Admin') }}</label>
+                    <input class="form-control form-control-sm {% if errors.admpass %}is-invalid{% endif %}" type="password" id="admpass" name="data[admpass]" value="" required/> {# Password field not repopulated for security #}
+                    {% if errors.admpass %}<div class="invalid-feedback">{{ errors.admpass }}</div>{% endif %}
+                </div>
+            </fieldset>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                <button class="btn btn-primary btn-sm" type="submit" name="submit_step2">{{ lang.install_button|default('Install') }}</button>
+                <a class="btn btn-secondary btn-sm" href="install.php">{{ lang.back_button|default('Kembali ke Pengaturan DB') }}</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
